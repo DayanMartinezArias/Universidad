@@ -1,0 +1,103 @@
+componentes:
+
+  e/s => Fichero como dispositivo-read or write-
+  cpu => gestión precesos(crear procesos, destruir procesos, sincronización, comunicación)
+  memoria => Zonas de memoria, memoria virtual, paginación, Gestión dememoria libre
+  alm.secundario => Archivos / Directorios, espcacio libre
+
+*proceso: Un programa en ejecución (memoria, instrucciones, datos, etc) 
+*programa: Código ejecutable almcenado en alm.secundario
+
+MEMORIA:
+SO
+Código
+var.globales
+pila
+montón
+
+precesos ficheros:
+fichero 0 Input del teclado
+fichero 1 prueba.txt
+fichero 2 salida error
+
+*cache: Código
+*buffer : disco duro (write -> Buffer)
+*spool : Impresora
+
+*Protección => Proteger contralos elementos internos del SO
+*serguridad => Elementos externos
+
+*Servicios => 
+Internos 
+  Asignación de recursos
+  Monitorización
+  Prottección
+Usuarios
+  Interfaz
+  E/S
+  ficheros
+  Comunicacines
+  Errores
+
+INTERFAZ DE USUARIO:
+ Linea de comandos
+ Procesos lotes
+ GUI : Interfaz Gráfica
+
+INTERFAZ DE PROGRAMACIÓN DE APLICACIONES:
+Windows API -> kernell32.dll, user32.dll
+POSIX -> C => Código C en cualquier linux
+LLamadas al so:
+la operación que permite utilizar el SO procesos
+Usuario
+Acceso a memoria local
+cálculos
+
+Llamada al sistema:
+-> Excepción : Interrupción Software
+
+write:
+fichero abierto: fd
+Zona memoria datos
+Tamaño de datos
+
+Paso de parámetros a las llamadas del sistema
+-> Registros (pocos aunque muy eficientes)
+-> Tabla de memoria (sin límite de parámetros aunque lento)
+-> Pila del sistema
+
+Librería del sistema
+->LLamadas al sistema
+ -> Funciones C
+  -> API
+
+Librería estandard
+ -> Compilador
+   -> Uso del las funciones del SO
+     -> LEnguaje de alto nivel
+
+Código C++
+librería estandard
+librería del sistema
+llamada al so
+so
+
+
+OPERACIÓN DE UN SISTEMA OPERATIVO 
+
+Es un software residente controlado por interrupciones
+Interrupción hardware ->temporizador, E/S, div por 0, segmentation fault
+Excepciones Software
+
+Operación en modo dual (A travez de un hardware que lo permita)
+-> Modo Usuario => Memoria permitida, Instrucciones básicas
+-> Modo root => Toda la memeoria, Todas las instrucciones, Todo Hardware
+
+Memoria 0 -> root
+memoria 1 -> usuario
+
+x86:
+00 root
+01 Privilegiado
+10 Avanzado
+11 Básico 
