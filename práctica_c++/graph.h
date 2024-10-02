@@ -136,9 +136,6 @@ void Graph::BFS(const unsigned initial_node, Vector<int>& pred, Vector<bool>& vi
   }
 }
 
-void Graph<T>::DFS(const unsigned initial_node) {
-
-}
 
 
 #endif

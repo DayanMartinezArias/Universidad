@@ -11,5 +11,5 @@ int main () {
   grafo.AddEdge(5, 4);
   grafo.AddEdge(1, 5);
   grafo.AddEdge(4, 6);
-  grafo.PrintBFS(7);
+  grafo.PrintBFS(1);
 }
