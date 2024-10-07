@@ -18,10 +18,11 @@ class Analyzer {
  public:
   Analyzer() = default;
   Analyzer(std::string name);
+  std::string GetName() const;
   void PrintResults() const;
  private:
-  bool IsMain;
-  std::string header_;
+  std::string name_;
+  bool is_main_;
   std::vector<Comment> comments_;
   std::vector<Loop> loops_;
   std::vector<Variable> vars_;

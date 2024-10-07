@@ -43,7 +43,7 @@ std::string VarTypeToString(VarTypes type) {
 std::ostream& operator<<(std::ostream& os, const Variable& var) {
     os << "[ Line " << var.GetLine() << "] " << VarTypeToString(var.GetType()) << ": " << var.GetName();
     if (var.IsInitialized()) {
-        os << " = " << var.GetInitVal();
+        os << " " << var.GetInitVal();
     }
     return os;
 }

@@ -1,4 +1,4 @@
-PROGRAM : factorial.cc
+PROGRAM : a.txt
 DESCRIPTION :
 /**
  * Universidad de La Laguna
@@ -12,16 +12,16 @@ DESCRIPTION :
  */
 
 VARIABLES :
-[ Line 11] INT: factorial = = 1
-[ Line 12] DOUBLE: limit
+[ Line 13] INT: factorial = 1
+[ Line 14] DOUBLE: limit
 
 STATEMENTS :
-[ Line 13] LOOP: for
-[ Line 14] LOOP: while
+[ Line 15] LOOP: for
+[ Line 16] LOOP: while
 
 MAIN :
 True
 
 COMMENTS :
 [ Line 1 - 10] DESCRIPTION
-[ Line 15] // Returns the factorial of the argument
+[ Line 17] // Returns the factorial of the argument

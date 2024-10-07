@@ -7,7 +7,6 @@
 class Analyzer;
 
 enum CommentType {
-  Description,    // For header files
   FunctionHeader, // Comment describing a function
   BasicComment    // Simple inline or block comment
 };

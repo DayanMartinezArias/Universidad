@@ -1,23 +1,24 @@
 #include "Analizer.h"
 
-Analyzer::Analyzer(std::string name) : header_(" ") {
+Analyzer::Analyzer(std::string name) : name_(name) {
   std::ifstream input(name);
   std::string line;
   int line_number{0};
   bool in_multiline_comment = false;
   int comment_start_line = 0;
   std::string multiline_comment_content;
+  is_main_ = false;
 
-  // Regular expressions for variables, loops, and comments
-  std::regex var_regex(R"(^(int|double)\s+(\w+)\s*(=\s*[^;]+)?;)");
-  std::regex loop_regex(R"(\b(while|for)\s*\()");
+  std::regex var_regex(R"(^\s*(int|double)\s+(\w+)\s*(=\s*[^;]+)?;)");
+  std::regex loop_regex(R"(^\s*(while|for)\s*\()");
   std::regex single_line_comment_regex(R"(//.*)");
   std::regex multiline_comment_start_regex(R"(/\*[\s\S]*)");
   std::regex multiline_comment_end_regex(R"([\s\S]*?\*/)");
+  std::regex main_exists_regex(R"(^\s*int\s+main\s*\(\s*\))");
 
   std::smatch match;
 
-  while (getline(input, line)) {
+  while (std::getline(input, line)) {
     line_number++;
 
     // If inside a multi-line comment, continue appending lines until the comment ends
@@ -35,7 +36,11 @@ Analyzer::Analyzer(std::string name) : header_(" ") {
       continue;
     }
 
-    // Search for variables
+    if (std::regex_search(line, match, main_exists_regex)) {
+     is_main_ = true;
+    }
+
+  
     if (std::regex_search(line, match, var_regex)) {
       std::string var_type = match[1];
       std::string var_name = match[2];
@@ -78,15 +83,19 @@ Analyzer::Analyzer(std::string name) : header_(" ") {
   }
 }
 
+std::string Analyzer::GetName() const {
+  return name_;
+}
+
 void Analyzer::PrintResults() const {
-  std::cout << "PROGRAM : factorial.cc\n";
+  std::cout << "PROGRAM : " << GetName() << "\n";
   std::cout << "DESCRIPTION :\n";
 
-  // Imprimir el encabezado al principio
+ 
   for (const auto& comment : comments_) {
     if (comment.GetType() == CommentType::FunctionHeader && comment.GetStart() == 1) {
-      std::cout << comment.GetContent() << "\n";  // Imprime el encabezado
-      break;  // Solo queremos imprimir el encabezado una vez
+      std::cout << comment.GetContent() << "\n"; 
+      break;
     }
   }
 
@@ -101,10 +110,14 @@ void Analyzer::PrintResults() const {
   }
 
   std::cout << "\nMAIN :\n";
-  std::cout << "True\n";  // Esto es un ejemplo, cámbialo según tu lógica
+  if (is_main_) {
+    std::cout << "True\n";
+  } else {
+    std::cout << "False\n";
+  }
 
   std::cout << "\nCOMMENTS :\n";
-  for (const auto& comment : comments_) { // Evitar repetir el encabezado
+  for (const auto& comment : comments_) { 
       std::cout << comment << "\n";
   }
 }

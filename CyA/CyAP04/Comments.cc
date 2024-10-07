@@ -30,9 +30,6 @@ std::ostream& operator<<(std::ostream& os, Comment obj) {
     
     // Contenido o tipo de comentario
     switch (obj.GetType()) {
-        case CommentType::Description:
-            os << "DESCRIPTION";
-            break;
         case CommentType::FunctionHeader:
             if(obj.GetStart() == 1) {
               os << "DESCRIPTION";

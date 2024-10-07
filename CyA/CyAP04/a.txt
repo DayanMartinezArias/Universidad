@@ -8,8 +8,11 @@
  * 
  * @see https :// github .com/IB -2023 -2024/ IB -class -code - examples /
  */
+
+int main () {
 int factorial = 1;
 double limit;
 for (int i = 0; i < limit; i++) { }
 while (factorial > 0) { }
 // Returns the factorial of the argument
+}
