@@ -1,3 +1,12 @@
+/**
+ * @file Comments.h
+ * @author Martínez Arias, Dayán Alu0101644561
+ * @brief Declaration of the comment class
+ * @version 0.1
+ * @date 2024-10-07
+ * 
+ */
+
 #ifndef COMMENT_H
 #define COMMENT_H
 
@@ -7,8 +16,8 @@
 class Analyzer;
 
 enum CommentType {
-  FunctionHeader, // Comment describing a function
-  BasicComment    // Simple inline or block comment
+  FunctionHeader, 
+  BasicComment   
 };
 
 class Comment {

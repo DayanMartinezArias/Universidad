@@ -2,7 +2,7 @@
  * Universidad de La Laguna
  * Escuela Superior de Ingenieria y Tecnologia
  * Informatica Basica
- * 
+ * int x;
  * @brief Ejercicios de programacion
  * Version 1: Funcion factorial
  * 
@@ -12,7 +12,10 @@
 int main () {
 int factorial = 1;
 double limit;
-for (int i = 0; i < limit; i++) { }
-while (factorial > 0) { }
-// Returns the factorial of the argument
+// hika
+// for (int i = 0; i < limit; i++) { }
+/**
+ while (factorial > 0) { }
+**/
+// Returns the factorial of the argument int x;
 }

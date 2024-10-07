@@ -1,10 +1,10 @@
-PROGRAM : a.txt
+PROGRAM : input.txt
 DESCRIPTION :
 /**
  * Universidad de La Laguna
  * Escuela Superior de Ingenieria y Tecnologia
  * Informatica Basica
- * 
+ * int x;
  * @brief Ejercicios de programacion
  * Version 1: Funcion factorial
  * 
@@ -16,12 +16,23 @@ VARIABLES :
 [ Line 14] DOUBLE: limit
 
 STATEMENTS :
-[ Line 15] LOOP: for
-[ Line 16] LOOP: while
 
 MAIN :
 True
 
 COMMENTS :
 [ Line 1 - 10] DESCRIPTION
-[ Line 17] // Returns the factorial of the argument
+[ Line 15] // hika
+[ Line 16] // for (int i = 0; i < limit; i++) { }
+[ Line 17 - 19] FUNCTION HEADER: /**
+ while (factorial > 0) { }
+**/
+[ Line 20] // Returns the factorial of the argument int x;
+
+NUMbER OF VARIABLES:
+int = 1
+double = 1
+
+NUMbER OF LOOPS:
+for = 0
+while = 0

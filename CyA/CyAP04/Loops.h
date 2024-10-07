@@ -1,10 +1,17 @@
+/**
+ * @file Loops.h
+ * @author Martínez Arias, Dayánn alu0101644561
+ * @brief Declaration of the Analizer class
+ * @version 0.1
+ * @date 2024-10-07
+ */
+
 #ifndef LOOPS_H
 #define LOOPS_H
 
 #include <string>
 #include <iostream>
 
-// Enum para los tipos de bucles
 enum LoopTypes {
     For,
     While
@@ -12,19 +19,13 @@ enum LoopTypes {
 
 class Loop {
  public:
-  // Constructor
   Loop(LoopTypes type, int line);
-
-  // Getters
   LoopTypes GetType() const;
   int GetLine() const;
-
-  // Sobrecarga del operador de inserción para imprimir la información del bucle
   friend std::ostream& operator<<(std::ostream& os, const Loop& loop);
-
  private:
-  LoopTypes type_;  // Tipo de bucle (For o While)
-  int line_;        // Línea donde aparece el bucle
+  LoopTypes type_;  
+  int line_;       
 };
 
 #endif
