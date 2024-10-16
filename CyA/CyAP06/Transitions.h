@@ -12,22 +12,25 @@
 #ifndef TRANSITION_H
 #define TRANSITION_H
 
+constexpr char EPS{'&'};
+
 #include <iostream>
 #include <map>
 #include <set>
+#include "alfabeto.h"
 
 class TrFunc {
  public:
   TrFunc() = default;
-  TrFunc(const std::multimap<int, std::pair<char, int>>& transitions_nfa) : transitions_nfa_(transitions_nfa), is_dfa_(false) {};
-  TrFunc(const std::map<char, int>& transitions_dfa) : transitions_dfa_(transitions_dfa), is_dfa_(true) {};
-  std::set<int> GetNextNFA(const int state, const char symbol);
-  int GetNextDFA(const int state, const char symbol);
-  // friend std::ostream& operator<<(std::ostream& os, const TrFunc& obj);
+  TrFunc(const std::multimap<std::pair<char, int>, int>& transitions_nfa) : transitions_nfa_(transitions_nfa), is_dfa_(false) {};
+  TrFunc(const std::map<std::pair<char, int>, int>& transitions_dfa) : transitions_dfa_(transitions_dfa), is_dfa_(true) {};
+  std::set<int> GetNextNFA(const int state, const char symbol) const;
+  int GetNextDFA(const int state, const char symbol) const;
+  friend std::ostream& operator<<(std::ostream& os, const TrFunc& obj);
  private:
   bool is_dfa_; // Checks if the transition function is associated with a DFA
-  std::map<char, int> transitions_dfa_;
-  std::multimap<int, std::pair<char, int>> transitions_nfa_;
+  std::map<std::pair<char, int>, int> transitions_dfa_;
+  std::multimap<std::pair<char, int>, int> transitions_nfa_;
 };
 
 #endif
