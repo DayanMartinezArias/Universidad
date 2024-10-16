@@ -3,7 +3,7 @@ module preprocess(output wire [3:0] AMod, output wire [3:0] BMod, input wire [3:
   wire add1, cpl, op1_A, op2_B;
   
   // Asignaciones de las señales de control
-  assign add1 = Op[0];
+  assign add1 = Op[0] | Op[1] & ~Op[0];
   assign cpl = ~Op[2] & ~Op[1] & Op[0]; 
   assign op1_A = (Op[1] & ~Op[0]) | (Op[2] & ~Op[1]);
   assign op2_B = (Op[1] & ~Op[0]) | (Op[2] & ~Op[1]);

@@ -10,7 +10,7 @@ module alu(output wire [3:0] R, output wire zero, carry, sign, input wire [3:0] 
 
   // unidad lógica
   wire [3:0] ul_out;
-  ul4 ul(ul_out, A_mod, B_mod, Op[1:0]);
+  ul4 ul(ul_out, B_mod, A_mod, Op[1:0]);
 
   // mux
   mux2_4 mux(R, adder_sum, ul_out, Op[2]);
