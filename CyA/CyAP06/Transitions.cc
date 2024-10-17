@@ -32,6 +32,29 @@ int TrFunc::GetNextDFA(const int state, const char symbol) const {
   throw std::runtime_error("Invalid DFA transition");
 }
 
+bool TrFunc::IsDFA() const{
+  return is_dfa_;
+}
+
+std::multimap<std::pair<char, int>, int> TrFunc::GetFunctionNFA() const {
+  return transitions_nfa_;
+}
+
+std::map<std::pair<char, int>, int> TrFunc::GetFunctionDFA() const {
+  return transitions_dfa_;
+}
+
+bool TrFunc::operator==(const TrFunc& obj) const {
+  if (is_dfa_ != obj.is_dfa_) {
+    return false;
+  }
+  if (IsDFA()) {
+    return GetFunctionDFA() == obj.GetFunctionDFA();
+  } else {
+    return GetFunctionNFA() == obj.GetFunctionNFA();
+  }
+}
+
 std::ostream& operator<<(std::ostream& os, const TrFunc& obj) {
   if (obj.is_dfa_) {
     for (const auto& transition : obj.transitions_dfa_) {

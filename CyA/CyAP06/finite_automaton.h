@@ -19,19 +19,25 @@
 #include <utility>
 #include "alfabeto.h"
 #include "Transitions.h"
+#include "cadena.h"
 
 class NFA {
   public:
    NFA() = default;
    NFA(const Alfabeto& alphabet, const std::set<int>& states, const TrFunc& transitions_nfa,
    const int initial_state, const std::set<int>& accepting_states);
+   NFA(const NFA& obj);
    Alfabeto GetAlphabet() const;
    std::set<int> GetStates() const;
    int GetNumberOfStates() const;
    int GetInitialState() const;
    std::set<int> GetAcceptingStates() const;
    TrFunc GetTr() const;
+   bool ReadString(const Cadena& string);
+   bool IsDFA();
    friend std::ostream& operator<<(std::ostream& os, const NFA& obj);
+   bool operator==(const NFA& obj);
+   NFA& operator=(const NFA& obj);
 
   private:
    Alfabeto alphabet_; // Alphabet
