@@ -30,6 +30,7 @@ class NFA {
    int GetNumberOfStates() const;
    int GetInitialState() const;
    std::set<int> GetAcceptingStates() const;
+   TrFunc GetTr() const;
    friend std::ostream& operator<<(std::ostream& os, const NFA& obj);
 
   private:

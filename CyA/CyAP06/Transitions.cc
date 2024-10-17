@@ -38,7 +38,6 @@ std::ostream& operator<<(std::ostream& os, const TrFunc& obj) {
       os << "State: " << transition.first.second << "Symbol: " << transition.first.first << " -> Next State: " << transition.second << '\n';
     }
   } else {
-      os << "NFA Transition Function:\n";
       for (const auto& transition : obj.transitions_nfa_) {
         os << "State: " << transition.first.second  << ", Symbol: " << transition.first.first  << " -> Next State: " << transition.second << '\n';
       }

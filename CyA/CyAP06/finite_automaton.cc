@@ -35,11 +35,41 @@ std::set<int> NFA::GetAcceptingStates() const {
   return accepting_states_;
 }
 
+TrFunc NFA::GetTr() const{
+  return transit_;
+}
+
 std::ostream& operator<<(std::ostream& os, const NFA& obj){
-  os << "\033[34m" << "FINITE AUTOMATON:\n" << "\033[0m";  
+  os << "\n\033[34m" << "=== FINITE AUTOMATON DESCRIPTION ===\n" << "\033[0m";  
   os << "\033[32m" << "Alphabet: " << "\033[0m" << obj.GetAlphabet() << "\n";
   os << "\033[32m" << "Inital state: " << "\033[0m" << obj.GetInitialState() << "\n";
+  os << "\033[32m" << "State's set: " << "\033[0m";
+  os << "{";
+  bool first_st = true;  
+  for (const int st : obj.GetStates()) {
+    if (!first_st) {
+      os << ", "; 
+    }
+   os << st;
+   first_st = false; 
+  }
+  os << "}\n";
 
+  os << "\033[32m" << "Accepting states: " << "\033[0m";
+  os << "{";
+  bool first = true;  
+  for (const int acc_st : obj.GetAcceptingStates()) {
+    if (!first) {
+      os << ", "; 
+    }
+   os << acc_st;
+   first = false; 
+  }
+  os << "}\n";
+
+  os << "\033[32m"<< "NFA Transition Function:" << "\033[0m" << "\n";
+  os << obj.GetTr();
+  os << "\033[34m" << "=== END OF DESCRIPTION ===\n" << "\033[0m";
   return os;
 }
 
