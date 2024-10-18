@@ -34,7 +34,10 @@ class NFA {
    std::set<int> GetAcceptingStates() const;
    TrFunc GetTr() const;
    bool ReadString(const Cadena& string);
-   bool IsDFA();
+   std::set<int> EpsClosure(const int state) const;
+   std::set<int> EpsClosureSet(const std::set<int>& set_of_states) const;
+   bool IsDFA() const;
+   NFA GetDFA() const;
    friend std::ostream& operator<<(std::ostream& os, const NFA& obj);
    bool operator==(const NFA& obj);
    NFA& operator=(const NFA& obj);

@@ -9,6 +9,7 @@
  * 
  */
 
+#include <queue>
 #include "finite_automaton.h"
 
 NFA::NFA(const Alfabeto& alphabet, const std::set<int>& states, const TrFunc& transitions_nfa,
@@ -42,26 +43,56 @@ TrFunc NFA::GetTr() const{
   return transit_;
 }
 
-bool NFA::IsDFA() {
+bool NFA::IsDFA() const{
   return transit_.IsDFA();
 }
 
+std::set<int> NFA::EpsClosure(const int state) const {
+  std::set<int> eps_cl{state};
+  std::queue<int> states_to_process({state});
+  while (!states_to_process.empty()) {
+    int c_state{states_to_process.front()};
+    states_to_process.pop();
+    std::set<int> next = GetTr().GetNextNFA(c_state, kVacia);
+    for (const int next_states : next) {
+      if (eps_cl.find(next_states) == eps_cl.end()) {
+        states_to_process.push(next_states);
+        eps_cl.insert(next_states);
+      }
+    }
+  }
+  return eps_cl;
+}
+
+std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
+  std::set<int> eps_cl = set_of_states;
+  for (const int state : set_of_states) {
+   std::set<int> next_states = EpsClosure(state);
+    eps_cl.insert(next_states.begin(), next_states.end());
+    next_states.clear();
+  }
+  return eps_cl;
+}
+
+NFA NFA::GetDFA() const{
+  std::set<int> new_states;
+  if (!IsDFA()) {
+    
+  }
+  
+}
+
 bool NFA::ReadString(const Cadena& string) {
-  std::set<int> current_state{GetInitialState()};
-  std::set<int> aux;
+  std::set<int> current_state{EpsClosure(GetInitialState())};
+  std::set<int> next_states;
   for (const char symbol : string.GetSecuencia()) {
     for (const int states : current_state) {
-      std::set<int> new_set = GetTr().GetNextNFA(states, symbol);
-      std::set<int> epsilon_transitions = GetTr().GetNextNFA(states, kVacia);
-      for (const int new_states : new_set) {
-        aux.insert(new_states);
-      }
-      for (const int new_states : epsilon_transitions) {
-        aux.insert(new_states);
-      }
-    } 
-    current_state = aux;
-    aux.clear();
+      std::set<int> res = GetTr().GetNextNFA(states, symbol);
+      std::set<int> eps_cl = EpsClosureSet(res);
+      next_states.insert(eps_cl.begin(), eps_cl.end());   
+    }
+    current_state = next_states;
+    next_states.clear();
   }
   for (int last_state : current_state) {
     auto it = GetAcceptingStates().find(last_state);

@@ -23,6 +23,7 @@ class TrFunc {
   TrFunc(const std::multimap<std::pair<char, int>, int>& transitions_nfa) : transitions_nfa_(transitions_nfa), is_dfa_(false) {};
   TrFunc(const std::map<std::pair<char, int>, int>& transitions_dfa) : transitions_dfa_(transitions_dfa), is_dfa_(true) {};
   std::set<int> GetNextNFA(const int state, const char symbol) const;
+  std::set<int> TrFunc::GetNextNFASet(const std::set<int>& current_states, const char symbol) const;
   std::multimap<std::pair<char, int>, int> GetFunctionNFA() const;
   std::map<std::pair<char, int>, int> GetFunctionDFA() const;
   int GetNextDFA(const int state, const char symbol) const;
