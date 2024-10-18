@@ -74,13 +74,15 @@ std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
   return eps_cl;
 }
 
-NFA NFA::GetDFA() const{
-  std::set<int> new_states;
+/*NFA NFA::GetDFA() const {
+  std::set<int> dfa_states;
+  std::set<int> states = EpsClosure(initial_state_);
   if (!IsDFA()) {
-    
+    for (const char symbol : GetAlphabet().GetAlphabet()) {
+      
+    }
   }
-  
-}
+}*/
 
 bool NFA::ReadString(const Cadena& string) {
   std::set<int> current_state{EpsClosure(GetInitialState())};

@@ -22,10 +22,6 @@ std::set<int> TrFunc::GetNextNFA(const int state, const char symbol) const {
    return possible_states;
 }
 
-std::set<int> TrFunc::GetNextNFASet(const std::set<int>& current_states, const char symbol) const {
-  
-}
-
 int TrFunc::GetNextDFA(const int state, const char symbol) const {
   if (is_dfa_) {
     auto it = transitions_dfa_.find({symbol, state});

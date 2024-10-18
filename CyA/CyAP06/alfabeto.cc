@@ -40,6 +40,16 @@ Alfabeto::Alfabeto(const Alfabeto& alfabeto) {
   alfabeto_ = alfabeto.alfabeto_;
 }
 
+
+/**
+ * @brief Returns the the set of symbols of the alphabet
+ * 
+ * @return std::set<char> 
+ */
+std::set<char> Alfabeto::GetAlphabet() const {
+  return alfabeto_;
+}
+
 /**
  * @brief Comprueba si existe un determinado símbolo en un alfabeto
  * 
@@ -47,7 +57,7 @@ Alfabeto::Alfabeto(const Alfabeto& alfabeto) {
  * @return true 
  * @return false 
  */
-bool Alfabeto::ExisteSimbolo(const char simbolo) const{
+bool Alfabeto::ExisteSimbolo(const char simbolo) const {
   return (!(alfabeto_.find(simbolo) == alfabeto_.end()));
 }
 
@@ -57,7 +67,7 @@ bool Alfabeto::ExisteSimbolo(const char simbolo) const{
  * @param simbolo 
  */
 void Alfabeto::InsertarSimbolo(const char simbolo) {
-  alfabeto_.insert(simbolo);
+  if (simbolo != ' ') alfabeto_.insert(simbolo);
 }
 
 /**
