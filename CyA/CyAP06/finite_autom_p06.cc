@@ -15,6 +15,7 @@ NFA ProcessAutom(std::ifstream& input) {
   std::string line;
   Alfabeto alphabet;
   std::multimap<std::pair<char, int>, int> transitions;
+  std::set<int> check_tr;
 
   NFA invalid;
 
@@ -51,13 +52,24 @@ NFA ProcessAutom(std::ifstream& input) {
         // Cada transición ocupa 4 caracteres
         char symbol = transitions_info[i * 4];   
         if (!alphabet.ExisteSimbolo(symbol)) {
-          std::cerr << "ERROR: Invalid transtion, undefined symbol: " << symbol << "\n";
+          std::cerr << "ERROR: Invalid transition, undefined symbol: " << symbol << "\n";
         }
         int dest_state = std::stoi(transitions_info.substr(i * 4 + 2, 2)); 
+        check_tr.insert(dest_state);
         transitions.insert({{symbol, state}, dest_state});
       }
     }
     line_counter++;
+  }
+  if (states.size() != number_of_states) {
+    std::cerr << "ERROR: Specified number of states and actual number of states doesn't match" << "\n";
+    return invalid;
+  } 
+  for (const int dest_state : check_tr) {
+    if (states.find(dest_state) == states.end()) {
+      std::cerr << "ERROR: Invalid transitable state at line: " << line_counter << "\n";
+      return invalid;
+    }
   }
   NFA created_nfa(alphabet, states, transitions, init_state, accepting_states);
   return created_nfa;
@@ -75,6 +87,9 @@ void ProcessStrings(std::ifstream& input_string, std::ofstream& output_file, con
 }
 
 int main (int argc, char* argv[]) {
+  if (argv[1] == "--help") {
+
+  }
   std::ifstream input_autom(argv[1]);
   std::ifstream input_string(argv[2]);
   std::ofstream output_file("output.txt");
