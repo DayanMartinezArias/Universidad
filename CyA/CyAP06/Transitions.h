@@ -30,6 +30,7 @@ class TrFunc {
   bool IsDFA() const;
   friend std::ostream& operator<<(std::ostream& os, const TrFunc& obj);
   bool operator==(const TrFunc& obj) const;
+  bool Empty() const;
  private:
   bool is_dfa_; // Checks if the transition function is associated with a DFA
   std::map<std::pair<char, int>, int> transitions_dfa_;

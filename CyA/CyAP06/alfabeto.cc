@@ -92,6 +92,10 @@ bool Alfabeto::operator!=(const Alfabeto& alfabeto) const {
   return alfabeto_ != alfabeto.alfabeto_;
 }
 
+bool Alfabeto::Vacio() const {
+  return alfabeto_.empty();
+}
+
 /**
  * @brief Crea el flujo de entrada
  * 

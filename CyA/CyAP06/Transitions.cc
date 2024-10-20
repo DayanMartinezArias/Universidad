@@ -55,6 +55,10 @@ bool TrFunc::operator==(const TrFunc& obj) const {
   }
 }
 
+bool TrFunc::Empty() const {
+  return transitions_nfa_.empty();
+}
+
 std::ostream& operator<<(std::ostream& os, const TrFunc& obj) {
   if (obj.is_dfa_) {
     for (const auto& transition : obj.transitions_dfa_) {

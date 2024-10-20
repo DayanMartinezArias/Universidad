@@ -84,9 +84,24 @@ std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
   }
 }*/
 
-bool NFA::ReadString(const Cadena& string) {
+bool NFA::InvalidNFA() const {
+  return alphabet_.Vacio() && states_.empty() && transit_.Empty() && accepting_states_.empty();
+}
+
+bool NFA::ReadString(const Cadena& string) const {
   std::set<int> current_state{EpsClosure(GetInitialState())};
   std::set<int> next_states;
+  if (string.GetSecuencia() == "&") {
+    std::set<int> eps_cl = EpsClosureSet(current_state);
+    for (int states: eps_cl) {
+    auto it = GetAcceptingStates().find(states);
+    if (it != GetAcceptingStates().end()) {
+      return true;
+    }
+  }
+  return false;
+  }
+
   for (const char symbol : string.GetSecuencia()) {
     for (const int states : current_state) {
       std::set<int> res = GetTr().GetNextNFA(states, symbol);
@@ -105,7 +120,7 @@ bool NFA::ReadString(const Cadena& string) {
   return false;
 }
 
-bool NFA::operator==(const NFA& obj) {
+bool NFA::operator==(const NFA& obj) const {
   return GetInitialState() == obj.GetInitialState() && GetAlphabet() == obj.GetAlphabet() && 
   GetStates() == obj.GetStates() && GetAcceptingStates() == obj.GetAcceptingStates() && GetTr() == obj.GetTr();
 }

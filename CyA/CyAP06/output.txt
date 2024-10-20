@@ -1,0 +1,9 @@
+& --Rejected
+0 --Rejected
+11 --Rejected
+000 --Accepted
+100 --Rejected
+010101 --Rejected
+1111 --Rejected
+0000100 --Accepted
+0101010 --Rejected
