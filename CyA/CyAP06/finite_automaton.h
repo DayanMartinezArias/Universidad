@@ -1,12 +1,15 @@
-/**
- * @file finite_automaton.h
- * @author your name (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2024-10-16
- * 
- * @copyright Copyright (c) 2024
- * 
+/**  Universidad de La Laguna
+ * Escuela Superior de Ingeniería y Tecnología
+ * Grado en Ingeniería Informática
+ * Asignatura: Computabilidad y Algoritmia
+ * Curso: 2º
+ * Práctica 2: Autómatas finitos
+ * Autor: Dayán Martínez Arias
+ * Correo: alu0101644561@ull.edu.es
+ * Fecha: 25/09/24
+ * Archivo finite_automaton.cc
+ * Contiene la definición de la clase autómata
+ *
  */
 
 #ifndef AUTOM_H

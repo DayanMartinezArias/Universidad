@@ -1,52 +1,111 @@
-/**
- * @file finite_automaton.cc
- * @author your name (you@domain.com)
- * @brief 
- * @version 0.1
- * @date 2024-10-16
- * 
- * @copyright Copyright (c) 2024
- * 
+/**  Universidad de La Laguna
+ * Escuela Superior de Ingeniería y Tecnología
+ * Grado en Ingeniería Informática
+ * Asignatura: Computabilidad y Algoritmia
+ * Curso: 2º
+ * Práctica 2: Autómatas finitos
+ * Autor: Dayán Martínez Arias
+ * Correo: alu0101644561@ull.edu.es
+ * Fecha: 25/09/24
+ * Archivo finite_automaton.cc
+ * Contiene la implementación de la clase autómata
+ *
  */
 
 #include <queue>
 #include "finite_automaton.h"
 
+/**
+ * @brief Construct a new NFA::NFA object
+ * 
+ * @param alphabet 
+ * @param states 
+ * @param transitions_nfa 
+ * @param initial_state 
+ * @param accepting_states 
+ */
 NFA::NFA(const Alfabeto& alphabet, const std::set<int>& states, const TrFunc& transitions_nfa,
 const int initial_state, const std::set<int>& accepting_states) : alphabet_(alphabet), states_(states), transit_(transitions_nfa), 
 initial_state_(initial_state), accepting_states_(accepting_states) {}
 
+/**
+ * @brief Construct a new NFA::NFA object
+ * 
+ * @param obj 
+ */
 NFA::NFA(const NFA& obj) : alphabet_(obj.GetAlphabet()), states_(obj.GetStates()), transit_(obj.GetTr()),
 initial_state_(obj.GetInitialState()), accepting_states_(obj.GetAcceptingStates()) {}
 
+/**
+ * @brief 
+ * 
+ * @return Alfabeto 
+ */
 Alfabeto NFA::GetAlphabet() const {
   return alphabet_;
 }
 
+/**
+ * @brief 
+ * 
+ * @return std::set<int> 
+ */
 std::set<int> NFA::GetStates() const {
   return states_;
 }
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
 int NFA::GetNumberOfStates() const {
   return states_.size();
 }
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
 int NFA::GetInitialState() const {
   return initial_state_;
 }
 
+/**
+ * @brief 
+ * 
+ * @return std::set<int> 
+ */
 std::set<int> NFA::GetAcceptingStates() const {
   return accepting_states_;
 }
 
-TrFunc NFA::GetTr() const{
+/**
+ * @brief 
+ * 
+ * @return TrFunc 
+ */
+TrFunc NFA::GetTr() const {
   return transit_;
 }
 
-bool NFA::IsDFA() const{
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+bool NFA::IsDFA() const {
   return transit_.IsDFA();
 }
 
+/**
+ * @brief 
+ * 
+ * @param state 
+ * @return std::set<int> 
+ */
 std::set<int> NFA::EpsClosure(const int state) const {
   std::set<int> eps_cl{state};
   std::queue<int> states_to_process({state});
@@ -64,6 +123,12 @@ std::set<int> NFA::EpsClosure(const int state) const {
   return eps_cl;
 }
 
+/**
+ * @brief 
+ * 
+ * @param set_of_states 
+ * @return std::set<int> 
+ */
 std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
   std::set<int> eps_cl = set_of_states;
   for (const int state : set_of_states) {
@@ -74,20 +139,23 @@ std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
   return eps_cl;
 }
 
-/*NFA NFA::GetDFA() const {
-  std::set<int> dfa_states;
-  std::set<int> states = EpsClosure(initial_state_);
-  if (!IsDFA()) {
-    for (const char symbol : GetAlphabet().GetAlphabet()) {
-      
-    }
-  }
-}*/
-
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
 bool NFA::InvalidNFA() const {
   return alphabet_.Vacio() && states_.empty() && transit_.Empty() && accepting_states_.empty();
 }
 
+/**
+ * @brief 
+ * 
+ * @param string 
+ * @return true 
+ * @return false 
+ */
 bool NFA::ReadString(const Cadena& string) const {
   std::set<int> current_state{EpsClosure(GetInitialState())};
   std::set<int> next_states;
@@ -120,11 +188,24 @@ bool NFA::ReadString(const Cadena& string) const {
   return false;
 }
 
+/**
+ * @brief 
+ * 
+ * @param obj 
+ * @return true 
+ * @return false 
+ */
 bool NFA::operator==(const NFA& obj) const {
   return GetInitialState() == obj.GetInitialState() && GetAlphabet() == obj.GetAlphabet() && 
   GetStates() == obj.GetStates() && GetAcceptingStates() == obj.GetAcceptingStates() && GetTr() == obj.GetTr();
 }
 
+/**
+ * @brief 
+ * 
+ * @param obj 
+ * @return NFA& 
+ */
 NFA& NFA::operator=(const NFA& obj) {
   if(this == &obj) return *this;
   alphabet_ = obj.GetAlphabet();
@@ -135,6 +216,13 @@ NFA& NFA::operator=(const NFA& obj) {
   return *this;
 }
 
+/**
+ * @brief 
+ * 
+ * @param os 
+ * @param obj 
+ * @return std::ostream& 
+ */
 std::ostream& operator<<(std::ostream& os, const NFA& obj){
   os << "\n\033[34m" << "=== FINITE AUTOMATON DESCRIPTION ===\n" << "\033[0m";  
   os << "\033[32m" << "Alphabet: " << "\033[0m" << obj.GetAlphabet() << "\n";

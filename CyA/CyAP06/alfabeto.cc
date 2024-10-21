@@ -92,6 +92,12 @@ bool Alfabeto::operator!=(const Alfabeto& alfabeto) const {
   return alfabeto_ != alfabeto.alfabeto_;
 }
 
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Alfabeto::Vacio() const {
   return alfabeto_.empty();
 }
