@@ -8,3 +8,4 @@ module cl(output wire out, input wire a, b, input wire [1:0] S);
 
   mux4_1 mux4_1_v1(out, and_res, or_res, xor_res, not_res, S);
 endmodule
+

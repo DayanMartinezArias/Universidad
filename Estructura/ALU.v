@@ -14,8 +14,9 @@ module alu(output wire [3:0] R, output wire zero, carry, sign, input wire [3:0] 
 
   // mux
   mux2_4 mux(R, adder_sum, ul_out, Op[2]);
-
+  
+  // Flags
   assign sign = R[3];
-  assign zero = (R == 4'b0000) ? 1'b1 : 1'b0;
+  assign zero = ~R[0] & ~R[1] & ~R[2] & ~R[3];
 
 endmodule
