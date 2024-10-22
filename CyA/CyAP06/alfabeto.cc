@@ -93,7 +93,7 @@ bool Alfabeto::operator!=(const Alfabeto& alfabeto) const {
 }
 
 /**
- * @brief 
+ * @brief Returns whether or not an alphabet is empty
  * 
  * @return true 
  * @return false 
