@@ -37,7 +37,7 @@ NFA::NFA(const NFA& obj) : alphabet_(obj.GetAlphabet()), states_(obj.GetStates()
 initial_state_(obj.GetInitialState()), accepting_states_(obj.GetAcceptingStates()) {}
 
 /**
- * @brief 
+ * @brief Returns the alphabet of the class
  * 
  * @return Alfabeto 
  */
@@ -46,7 +46,7 @@ Alfabeto NFA::GetAlphabet() const {
 }
 
 /**
- * @brief 
+ * @brief Returns the set of states
  * 
  * @return std::set<int> 
  */
@@ -55,7 +55,7 @@ std::set<int> NFA::GetStates() const {
 }
 
 /**
- * @brief 
+ * @brief Returns the number of states
  * 
  * @return int 
  */
@@ -64,7 +64,7 @@ int NFA::GetNumberOfStates() const {
 }
 
 /**
- * @brief 
+ * @brief Returns the initial state
  * 
  * @return int 
  */
@@ -73,7 +73,7 @@ int NFA::GetInitialState() const {
 }
 
 /**
- * @brief 
+ * @brief Returns a set of accepted states
  * 
  * @return std::set<int> 
  */
@@ -82,7 +82,7 @@ std::set<int> NFA::GetAcceptingStates() const {
 }
 
 /**
- * @brief 
+ * @brief Returns the transition function 
  * 
  * @return TrFunc 
  */
@@ -91,7 +91,7 @@ TrFunc NFA::GetTr() const {
 }
 
 /**
- * @brief 
+ * @brief Returns whether is a DFA or not
  * 
  * @return true 
  * @return false 
@@ -101,7 +101,7 @@ bool NFA::IsDFA() const {
 }
 
 /**
- * @brief 
+ * @brief Does the eps-closure of a state
  * 
  * @param state 
  * @return std::set<int> 
@@ -124,7 +124,7 @@ std::set<int> NFA::EpsClosure(const int state) const {
 }
 
 /**
- * @brief 
+ * @brief Does the eps-cl of a set of states
  * 
  * @param set_of_states 
  * @return std::set<int> 
@@ -140,7 +140,7 @@ std::set<int> NFA::EpsClosureSet(const std::set<int>& set_of_states) const {
 }
 
 /**
- * @brief 
+ * @brief An empty automata is not valid
  * 
  * @return true 
  * @return false 
@@ -150,7 +150,7 @@ bool NFA::InvalidNFA() const {
 }
 
 /**
- * @brief 
+ * @brief Accepts or rejects a string
  * 
  * @param string 
  * @return true 
@@ -189,7 +189,7 @@ bool NFA::ReadString(const Cadena& string) const {
 }
 
 /**
- * @brief 
+ * @brief Overload of operator==
  * 
  * @param obj 
  * @return true 
@@ -201,7 +201,7 @@ bool NFA::operator==(const NFA& obj) const {
 }
 
 /**
- * @brief 
+ * @brief Overload of operator=
  * 
  * @param obj 
  * @return NFA& 
@@ -217,7 +217,7 @@ NFA& NFA::operator=(const NFA& obj) {
 }
 
 /**
- * @brief 
+ * @brief Overload of operator<<
  * 
  * @param os 
  * @param obj 
