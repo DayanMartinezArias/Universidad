@@ -1,21 +1,23 @@
 #!/bin/bash
 
 PROGNAME=$(basename $0)
-USRS=""
+USERS=""
+ROUTE=""
+PIDZERO="no"
 
 show_process() {
-  if [ "$USRS" == "" ]; then
+  if [ -z "$USERS" ]; then
     ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user | awk '$1 != 0'
   else
-    ps ax -o sid,pgid,pid,user,tty,%mem,cmd -u $USRS --sort=user | awk '$1 != 0'
+    ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user | awk -v user="$USERS" '$4 == user && $1 != 0'
   fi
 }
 
 show_process_sid_zero() {
-  if [ "$USRS" == "" ]; then
+  if [ -z "$USERS" ]; then
     ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user
   else
-    ps ax -o sid,pgid,pid,user,tty,%mem,cmd -u$USRS --sort=user 
+    ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user | awk -v user="$USERS" '$4 == user'
   fi
 }
 
@@ -31,52 +33,80 @@ _EOF_
 }
 
 unknown_param() {
-  echo ERROR: An Unknown param was introduced: $1
+  echo "ERROR: Unknown parameter introduced: $1"
 }
 
 check_help() {
-
   for arg in "$@"; do
     if [ "$arg" == "-h" ]; then
       show_help
       exit 0
     fi
   done
-
 }
 
 read_args() {
   while [ "$1" != "" ]; do
     case $1 in
       -u )
-        if [[ "$2" == "" ]]; then
-          echo "Opción $1 requiere un argumento"
+        shift
+        if [ -z "$1" ]; then
+          echo "Option -u requires an argument"
           exit 1
         fi
-        USRS=$2
+        if [ -n "$USERS" ]; then
+          unknown_param "$1"
+          exit 1
+        fi        
+        USERS=$1
+        if ! grep -q "^$USERS:" /etc/passwd; then
+          echo "ERROR: User '$USERS' not found"
+          exit 1
+        fi
+        ;;
+      -d )
         shift
+        if [ -z "$1" ]; then
+          echo "Option -d requires an argument"
+          exit 1
+        fi
+        if [ -n "$ROUTE" ]; then
+          unknown_param "$1"
+          exit 1
+        fi        
+        ROUTE=$1
+        if [ -d "$ROUTE" ]; then 
+          lsof +d "$ROUTE"
+        else
+          echo "Directory does not exist" 
+          exit 1
+        fi
         ;;
       -z )
-        show_process_sid_zero
-        exit 0
+        if [ "$PIDZERO" == "no" ]; then 
+          PIDZERO="yes"
+        else 
+          unknown_param "$1"
+          exit 1
+        fi
         ;;
       * )
-        unknown_param $1
+        unknown_param "$1"
         exit 1
-      esac
-      shift
+    esac
+    shift
   done
 }
 
 check_help "$@"
 read_args "$@" 
 
-show_process 
-exit 0
+if [ "$PIDZERO" == "no" ]; then
+  show_process
+  exit 0
+else
+  show_process_sid_zero
+  exit 0
+fi
 
-## COSAS A HECER ##
-
-# ERROR PARA COMANDOS DOBLES
-# ASEGURASE DE QUE EXISTE EL NOMBRE DE USUARIO
-# MEJORAR LA FORMA MOTRAR LOS PROCESOS POR USUARIO
 
