@@ -5,142 +5,109 @@
 # Dayán Martínez Arias 
 # alu0101644561
 # PE102
-# 27/10/24
+# PRIMERA ENTREGA: 30/10/24
 
+#!/bin/bash
+
+# Global variables
 PROGNAME=$(basename $0)
 USERS=""
 ROUTE=""
 PIDZERO=false
 
-if ! command -v ps 2>&1 >/dev/null ||  ! command -v awk 2>&1 >/dev/null ||  ! command -v lsof 2>&1 >/dev/null; then
-  echo "ERROR: This script requires to have awk, lsof and ps installed on your computer"
+# Color definitions
+RED='\033[0;31m'
+NC='\033[0m'
+
+# Check for requiered commands
+if ! command -v ps >/dev/null 2>&1 || ! command -v awk >/dev/null 2>&1 || ! command -v lsof >/dev/null 2>&1; then
+  echo -e "${RED}ERROR: This script requires awk, lsof, and ps installed on your computer${NC}"
   exit 1
 fi
 
-get_ps() {
-  ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user
-}
-
-show_process() {
-  local ps_command
-  ps_command=$(get_ps)
-  
-  if [ -z "$USERS" ]; then
-    echo "$ps_command" | awk '$1 != 0' | column -t
-  else
-    echo "$ps_command" | awk -v user="$USERS" '$4 == user && $1 != 0' | column -t
-  fi
-}
-
-show_process_with_directory() {
-  local pids
-  pids=$(lsof -t +d "$ROUTE" | tr '\n' ',')
-  
-  if [ -n "$pids" ]; then
-    ps -p "${pids%,}" -o sid,pgid,pid,user,tty,%mem,cmd --sort=user | column -t
-  else
-    echo "No processes are accessing the specified directory."
-  fi
-}
-
-show_process_sid_zero() {
-  local ps_command
-  ps_command=$(get_ps)
-
-  if [ -z "$USERS" ]; then
-    echo "$ps_command" | column -t
-  else
-    echo "$ps_command" | awk -v user="$USERS" '$4 == user' | column -t
-  fi
-}
-
+# Function to show a help message
 show_help() {
   cat << _EOF_
 Usage: $PROGNAME [OPTIONS]
 
 Options:
-  -h        Show this help message and exit
-  -z        Shows all processes with sid 0
-  -u user   Shows all processes of a specific user
-  -d dir    Shows all processes accessing a specific directory
+  -h             Show this help message and exit
+  -z             Show all processes with SID 0
+  -u user        Show all processes of a specific user
+  -d directory   Show all processes accessing a specific directory
 _EOF_
 }
 
-unknown_param() {
-  echo "ERROR: Unknown parameter introduced: $1"
-}
-
-double_param() {
-  echo "ERROR: Double option was introduced"
-}
-
-check_help() {
-  for arg in "$@"; do
-    if [ "$arg" == "-h" ]; then
+# Process all options introduced by the user
+while [ "$1" != "" ]; do
+  case $1 in
+    -u )
+      shift
+      if [ -z "$1" ]; then
+        echo -e "${RED}ERROR: Option -u requires an argument${NC}"
+        exit 1
+      fi
+      USERS=$1
+      if ! grep -q "^$USERS:" /etc/passwd; then
+        echo -e "${RED}ERROR: User '$USERS' not found${NC}"
+        exit 1
+      fi
+      ;;
+    -d )
+      shift
+      if [ -z "$1" ]; then
+        echo -e "${RED}ERROR: Option -d requires an argument${NC}"
+        exit 1
+      fi
+      ROUTE=$1
+      if [ ! -d "$ROUTE" ]; then
+        echo -e "${RED}ERROR: Directory '$ROUTE' does not exist${NC}"
+        exit 1
+      fi
+      ;;
+    -z )
+      PIDZERO=true
+      ;;
+    -h )
       show_help
       exit 0
-    fi
-  done
+      ;;
+    * )
+      echo -e "${RED}ERROR: Unknown parameter: $1${NC}"
+      show_help
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Execute the ps command
+get_ps() {
+  ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user
 }
 
-read_args() {
-  while [ "$1" != "" ]; do
-    case $1 in
-      -u )
-        shift
-        if [ -z "$1" ]; then
-          echo "Option -u requires an argument"
-          exit 1
-        fi
-        if [ -n "$USERS" ]; then
-          double_param "$1"
-          exit 1
-        fi        
-        USERS=$1
-        if ! id -u "$USERS" >/dev/null 2>&1; then
-          echo "ERROR: User '$USERS' not found"
-          exit 1
-        fi
-        ;;
-      -d )
-        shift
-        if [ -z "$1" ]; then
-          echo "Option -d requires an argument"
-          exit 1
-        fi
-        if [ -n "$ROUTE" ]; then
-          double_param "$1"
-          exit 1
-        fi        
-        ROUTE=$1
-        if [ ! -d "$ROUTE" ]; then
-          echo "ERROR: Directory does not exist" 
-          exit 1
-        fi
-        ;;
-      -z )
-        if [ "$PIDZERO" == false ]; then 
-          PIDZERO=true
-        else 
-          double_param "$1"
-          exit 1
-        fi
-        ;;
-      * )
-        unknown_param "$1"
-        exit 1
-    esac
-    shift
-  done
+apply_filters() {
+  ps_output=$(get_ps)
+  
+  if [ -n "$USERS" ]; then
+    ps_output=$(echo "$ps_output" | awk -v user="$USERS" '$4 == user')
+  fi
+  
+  if [ "$PIDZERO" = false ]; then
+    ps_output=$(echo "$ps_output" | awk '$1 != 0')
+  fi
+  
+  if [ -n "$ROUTE" ]; then
+    pids=$(lsof +D "$ROUTE" 2>/dev/null | awk 'NR>1 {print $2}' | sort -u | tr '\n' ',')
+    ps_output=$(echo "$ps_output" | awk -v pids="$pids" '
+      BEGIN { 
+        split(pids, pid_array, ",")
+      }
+      { for (i in pid_array) if ($3 == pid_array[i]) print }
+    ')
+  fi
+
+  echo "$ps_output"
 }
 
-check_help "$@"
-read_args "$@" 
-
-if [ -n "$ROUTE" ]; then
-  show_process_with_directory
-elif [ "$PIDZERO" == true ]; then
-  show_process_sid_zero
-else
-  show_process
-fi
+apply_filters
