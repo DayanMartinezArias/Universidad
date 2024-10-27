@@ -1,0 +1,7 @@
+SID    PGID   PID    USER   TT     %MEM  CMD                                                                                                                                          
+29274  29274  29274  dayan  pts/0  0.0   /usr/bin/bash  --init-file       /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh      
+29292  29292  29292  dayan  pts/2  0.0   /usr/bin/bash  --init-file       /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh      
+29298  29298  29298  dayan  pts/3  0.0   /usr/bin/bash  --init-file       /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh      
+41048  41048  41048  dayan  pts/4  0.0   /usr/bin/bash  --init-file       /usr/share/code/resources/app/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-bash.sh      
+41048  41148  41148  dayan  pts/4  0.0   ./a.out                                                                                                                                      
+29298  41189  41189  dayan  pts/3  0.0   /bin/bash      ./infosession.sh  -z                                                                                                      -d  .
