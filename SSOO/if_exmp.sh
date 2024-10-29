@@ -1,9 +1,7 @@
 #!/bin/bash
 
 NAME=".bashrc"
+n="JNS"
+NAME=$NAME","$n
 
-if [ -f $NAME ]; then
-  echo "Tienes un fichero llamado $NAME"
-else 
-  echo "No tienes un fichero llamado $NAME"
-fi
+echo $NAME
