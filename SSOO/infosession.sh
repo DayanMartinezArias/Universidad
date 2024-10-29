@@ -21,13 +21,13 @@ USERS=""
 ROUTE=""
 SIDZERO=false
 LINE="==========================================================="
-WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof and ps previously installed!!${NC}")
+WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
 
 
 # Check for requiered commands
 check_commands() {
-  if ! command -v ps >/dev/null 2>&1 || ! command -v awk >/dev/null 2>&1 || ! command -v lsof >/dev/null 2>&1; then
-    show_error "This script requires awk, lsof, and ps installed on your computer"
+  if ! command -v ps >/dev/null 2>&1 || ! command -v awk >/dev/null 2>&1 || ! command -v lsof >/dev/null 2>&1 || ! command -v grep >/dev/null 2>&1; then
+    show_error "This script requires awk, lsof, grep and ps installed on your computer"
     exit 1
   fi
 }
