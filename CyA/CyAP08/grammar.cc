@@ -9,7 +9,7 @@ bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
 }
 
-bool CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) {
+bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) {
   std::string line;
   int line_counter{1};
   while (std::getline(input_file, line)) {
@@ -62,12 +62,43 @@ bool CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number
   return true;
 }
 
+bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& alphabet, const Alfabeto& non_t, char& left_side, std::string& right_side) {
+  size_t space_pos = production.find(' ');
+    
+    // Verifica si hay un espacio y si no está al final
+  if (space_pos == std::string::npos || space_pos == production.length() - 1) {
+    std::cerr << "Invalid format: Production must have a space between non-terminal and the sequence." << std::endl;
+    return false;
+  }
+
+  // Lado izquierdo: símbolo no terminal
+  std::string left_side_string = production.substr(0, space_pos);
+  if (left_side_string.length() != 1 || !non_t.ExisteSimbolo(left_side_string[0])) {
+    std::cerr << "Invalid non-terminal on the left side of production: " << left_side << std::endl;
+    return false;
+  }
+  left_side = left_side_string[0];
+
+  // Lado derecho: secuencia de terminales y no terminales
+  right_side = production.substr(space_pos + 1);
+  for (char symbol : right_side) {
+    if (symbol != kEmptyString && (!alphabet.ExisteSimbolo(symbol) && !non_t.ExisteSimbolo(symbol))) {
+      std::cerr << "Invalid symbol in production sequence: " << symbol << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
+
 bool Grammar::Read(std::ifstream& input_file) {
   int number_of_terminals{0};
   int number_of_non_terminals{0};
   int number_of_productions{0};
   int line_counter{1};
-  
+  char left_side;
+  char start_symbol;
+  std::string right_side;
+  std::set<Production> productions_set;
   Alfabeto alphabet;
   Alfabeto non_t;
 
@@ -101,8 +132,17 @@ bool Grammar::Read(std::ifstream& input_file) {
         std::cerr << "Inavild operation: Seems like you are trying the define the same symbol twice, symbol: " << symbol << std::endl;
         return false;
       }
+      if (non_t.Vacio()) {
+        start_symbol = symbol;
+      }
       non_t.InsertarSimbolo(symbol);
-      }  
+      } else if (line_counter > (number_of_non_terminals + number_of_terminals + 3) && line_counter <= (number_of_non_terminals + number_of_terminals + number_of_productions + 3)) {
+        if(!ValidateProduction(line, alphabet, non_t, left_side, right_side)) {
+          return false;
+        } 
+        Production new_production(left_side, right_side);
+        productions_set.insert(new_production);
+      }
     line_counter++;
   }
   if (alphabet.GetCardinal() != number_of_terminals) {
@@ -115,5 +155,14 @@ bool Grammar::Read(std::ifstream& input_file) {
   }
   std::cout << alphabet << std::endl;
   std::cout << non_t << std::endl;
+  for (Production prod : productions_set) {
+    std::cout << prod << std::endl;
+  }
+  std::cout << start_symbol << std::endl;
   return true;   
 }
+
+// symbols that are not used
+// if the start symbol doenst do anything
+// Si ε ∈L(G) se permite adem ́as una  ́unica producci ́on S →ε y en este caso no se permite
+// que el s ́ımbolo de arranque figure en la parte derecha de ninguna regla de producci ́on.
