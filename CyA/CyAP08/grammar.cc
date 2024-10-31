@@ -8,17 +8,24 @@ bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
 }
 
+bool CheckLines() {
+  
+}
 
 // ESPACIOS
-// repe
+// repeticiones
 // que se acabe el fichero
 bool Grammar::Read(std::ifstream& input_file) {
   bool valid_file{true};  // Cambiado a true para confirmar que es válido a menos que ocurra un error
   int line_counter{1};
   int number_of_terminals{0};
   int number_of_non_terminals{0};
+  int number_of_productions{0};
   
   Alfabeto alphabet;
+  Alfabeto non_t;
+
+  CheckLines();
 
   std::string line;
   while (std::getline(input_file, line)) {
@@ -40,6 +47,7 @@ bool Grammar::Read(std::ifstream& input_file) {
         break;
       }
     } 
+
     else if (line_counter > 1 && line_counter <= number_of_terminals + 1) {
       // Línea de terminales
       if (line.length() > 1) {
@@ -50,6 +58,8 @@ bool Grammar::Read(std::ifstream& input_file) {
       char symbol = line[0];
       alphabet.InsertarSimbolo(symbol);
     }
+
+
     else if (line_counter == number_of_terminals + 2) {
       // Línea para el número de no terminales
       if (!isNumber(line)) {
@@ -63,15 +73,34 @@ bool Grammar::Read(std::ifstream& input_file) {
         valid_file = false;
         break;
       }
+     // std::cout << number_of_non_terminals << std::endl;
     }
 
+    else if (line_counter > (number_of_terminals + 2) && line_counter <= number_of_non_terminals + number_of_terminals + 2) {
+    if (line.length() > 1) {
+      std::cerr << "Please, insert only symbols with 1 character on line " << line_counter << std::endl;
+      valid_file = false;
+      break;
+    }
+      char symbol = line[0];
+      non_t.InsertarSimbolo(symbol);
+    }
     // Incrementa el contador de línea después de procesar cada línea
     line_counter++;
+  }
+  
+  if (alphabet.GetCardinal() != number_of_terminals) {
+    std::cerr << "The number terminals doesn't match the specified number" << std::endl;
+    valid_file = false;
+  }
+  if (non_t.GetCardinal() != number_of_non_terminals) {
+    std::cerr << "The number non-terminals doesn't match the specified number" << std::endl;
+    valid_file = false;
   }
   // Imprimir el alfabeto solo si el archivo es válido
   if (valid_file) {
     std::cout << alphabet << std::endl;
+    std::cout << non_t << std::endl;
   }
-  
   return valid_file;
 }

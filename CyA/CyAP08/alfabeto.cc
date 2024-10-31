@@ -121,6 +121,14 @@ std::istream& operator>>(std::istream& is, Alfabeto& obj) {
   return is;
 }
 
+int Alfabeto::GetCardinal() {
+  int counter{0};
+  for (char symbol : GetAlphabet()) {
+    counter++;
+  }
+  return counter;
+}
+
 /**
  * @brief Crea el flujo de salidaa
  * 

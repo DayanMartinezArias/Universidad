@@ -12,8 +12,8 @@ class Grammar {
   bool Read(std::ifstream& input_file);
  private:
   Alfabeto alphabet;
+  Alfabeto non_t;
   char start_symbol_;
-  std::set<char> non_terminals_;
   std::set<Production> productions_;
 };
 
