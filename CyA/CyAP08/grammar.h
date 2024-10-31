@@ -6,6 +6,8 @@
 #include "Production.h"
 #include "alfabeto.h"
 
+constexpr char kEmptyString{'&'};
+
 class Grammar {
  public:
   Grammar() = default;

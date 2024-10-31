@@ -2,12 +2,13 @@
 
 #include <algorithm>
 #include <cctype>
-
+// chequear prod vacías
+//chquear prd unit
 
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
 }
-// que sea más largo
+
 bool CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) {
   std::string line;
   int line_counter{1};
@@ -52,13 +53,15 @@ bool CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number
   int total_lines{number_of_non_terminals + number_of_terminals + number_of_productions};
   if ((total_lines + 3) != (line_counter - 1)) {
     std::cerr << "There were supposed to be " << total_lines + 3 << " lines on the input file, you have " << line_counter - 1 << " lines, please, correct your input" << std::endl;
+    return false;
+  }
+  if (number_of_non_terminals == 0 || number_of_terminals == 0 || number_of_productions == 0) {
+    std::cerr << "Seems like your input file is incomplete, please, make sure you define a file with at leats one terminal, non-terminal and production" << std::endl;
+    return false;
   }
   return true;
 }
 
-// ESPACIOS
-// repeticiones
-// que se acabe el fichero
 bool Grammar::Read(std::ifstream& input_file) {
   int number_of_terminals{0};
   int number_of_non_terminals{0};
@@ -71,34 +74,46 @@ bool Grammar::Read(std::ifstream& input_file) {
   if (!CheckLines(input_file, number_of_terminals, number_of_non_terminals, number_of_productions)) {
     return false;
   }
+
+  input_file.clear(); // Limpia cualquier estado de error
+  input_file.seekg(0, std::ios::beg); // Vuelve al inicio del archivo
   
   std::string line;
   while (getline(input_file, line)) {
-    if (line_counter < 1 && line_counter <= number_of_terminals + 1) {
+    if (line_counter > 1 && line_counter <= number_of_terminals + 1) {
       if (line.length() > 1) {
         std::cerr << "Please, insert only symbols with 1 character on line " << line_counter << std::endl;
         return false;
       }
       char symbol = line[0];
+      if (alphabet.ExisteSimbolo(symbol) || non_t.ExisteSimbolo(symbol)) {
+        std::cerr << "Inavild operation: Seems like you are trying the define the same symbol twice, symbol: " << symbol << std::endl;
+        return false;
+      }
       alphabet.InsertarSimbolo(symbol);
-    } else if (line_counter > (number_of_terminals + 2) && line_counter <= number_of_non_terminals + number_of_terminals + 2) {
+    } else if (line_counter > (number_of_terminals + 2) && line_counter <= number_of_non_terminals + number_of_terminals + 2) { // To read the non-terminals
       if (line.length() > 1) {
         std::cerr << "Please, insert only symbols with 1 character on line " << line_counter << std::endl;
         return false;
       }
-        char symbol = line[0];
-        non_t.InsertarSimbolo(symbol);
+      char symbol = line[0];
+       if (alphabet.ExisteSimbolo(symbol) || non_t.ExisteSimbolo(symbol)) {
+        std::cerr << "Inavild operation: Seems like you are trying the define the same symbol twice, symbol: " << symbol << std::endl;
+        return false;
+      }
+      non_t.InsertarSimbolo(symbol);
       }  
-    if (alphabet.GetCardinal() != number_of_terminals) {
-      std::cerr << "The number terminals doesn't match the specified number" << std::endl;
-      return false;
-    }
-    if (non_t.GetCardinal() != number_of_non_terminals) {
-      std::cerr << "The number non-terminals doesn't match the specified number" << std::endl;
-      return false;
-    }
-    std::cout << alphabet << std::endl;
-    std::cout << non_t << std::endl;
+    line_counter++;
   }
+  if (alphabet.GetCardinal() != number_of_terminals) {
+    std::cerr << "The number terminals doesn't match the specified number" << std::endl;
+    return false;
+  }
+  if (non_t.GetCardinal() != number_of_non_terminals) {
+    std::cerr << "The number non-terminals doesn't match the specified number" << std::endl;
+    return false;
+  }
+  std::cout << alphabet << std::endl;
+  std::cout << non_t << std::endl;
   return true;   
 }
