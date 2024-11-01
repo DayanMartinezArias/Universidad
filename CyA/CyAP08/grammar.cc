@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cctype>
 // chequear prod vacías
-//chquear prd unit
+// chquear prd unit
 
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
@@ -90,6 +90,48 @@ bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& 
   return true;
 }
 
+bool Grammar::CheckNullProduction(const std::set<Production>& production_set, const char start_symbol) {
+  // Conjunto para almacenar símbolos que producen ε
+  std::set<char> nullable_symbols;
+
+  // Primer bucle: Agregar al conjunto los símbolos que directamente producen ε
+  for (const Production& prod : production_set) {
+    if (prod.GetSecuence().length() == 1 && prod.GetSecuence()[0] == kEmptyString) {
+      nullable_symbols.insert(prod.GetSymbol());
+    }
+  }
+  bool changed;
+  do {
+    changed = false;
+    for (const Production& prod : production_set) {
+      const std::string& sequence = prod.GetSecuence();
+      bool all_nullable = true;
+      // Verificar si toda la secuencia de la producción pertenece a nullable_symbols
+      for (char symbol : sequence) {
+        if (nullable_symbols.find(symbol) == nullable_symbols.end()) {
+          all_nullable = false;
+          break;
+        }
+      }
+      // Si toda la secuencia es anulable y el símbolo no está en el conjunto, lo agregamos
+      if (all_nullable && nullable_symbols.insert(prod.GetSymbol()).second) {
+        changed = true;  // Marcar que hubo un cambio
+      }
+    }
+  } while (changed);
+  if (nullable_symbols.empty()) {
+    return true;
+  } else if (nullable_symbols.size() == 1) {
+    for (const char symbol : nullable_symbols) {
+      if (symbol == start_symbol) {
+        return true;
+      }
+    }
+  } else {
+    return false;
+  }
+}
+
 bool Grammar::Read(std::ifstream& input_file) {
   int number_of_terminals{0};
   int number_of_non_terminals{0};
@@ -141,6 +183,10 @@ bool Grammar::Read(std::ifstream& input_file) {
           return false;
         } 
         Production new_production(left_side, right_side);
+        if (!(productions_set.find(new_production) == productions_set.end())) {
+          std::cerr << "Invalid operation, duplicated production: " << new_production << std::endl;
+          return false;
+        };
         productions_set.insert(new_production);
       }
     line_counter++;
@@ -153,6 +199,10 @@ bool Grammar::Read(std::ifstream& input_file) {
     std::cerr << "The number non-terminals doesn't match the specified number" << std::endl;
     return false;
   }
+  if (!CheckNullProduction(productions_set, start_symbol)) {
+    return false;
+  }
+
   std::cout << alphabet << std::endl;
   std::cout << non_t << std::endl;
   for (Production prod : productions_set) {
@@ -162,7 +212,9 @@ bool Grammar::Read(std::ifstream& input_file) {
   return true;   
 }
 
-// symbols that are not used
-// if the start symbol doenst do anything
-// Si ε ∈L(G) se permite adem ́as una  ́unica producci ́on S →ε y en este caso no se permite
-// que el s ́ımbolo de arranque figure en la parte derecha de ninguna regla de producci ́on.
+// Don't allow null prod
+// Don't allow unitary prod
+// Think what to do with useless symbols and productions, or symbols that are defined but never used in the productions
+// There has to be at leats, one production (This is already controlled) But in that case the production has to be the start production
+// Si ε ∈L(G) se permite ademñás una única producción S →ε y en este caso no se permite
+// que el símbolo de arranque figure en la parte derecha de ninguna regla de producción.

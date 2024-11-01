@@ -16,6 +16,14 @@ bool Production::operator<(const Production& other) const {
   return GetProduction().second < other.GetProduction().second;
 }
 
+char Production::GetSymbol() const {
+  return production_.first;
+}
+
+std::string Production::GetSecuence() const {
+  return production_.second;
+}
+
 std::ostream& operator<<(std::ostream& os, const Production& obj) {
   os << obj.GetProduction().first << "-->" << obj.GetProduction().second;
   return os;

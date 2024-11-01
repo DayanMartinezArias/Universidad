@@ -10,6 +10,8 @@ public:
   Production(const char symbol, const std::string& secuence);
   std::pair<char, std::string> GetProduction() const;
   bool operator<(const Production& other) const;
+  char GetSymbol() const;
+  std::string GetSecuence() const;
 
   // Declaración del operador << para la clase Production
   friend std::ostream& operator<<(std::ostream& os, const Production& obj);
