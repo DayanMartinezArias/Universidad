@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# Universidad de la Laguna
-# Sistemas Operativos
 # Dayán Martínez Arias 
 # alu0101644561
 # PE102
-# PRIMERA ENTREGA: 30/10/24
 
 # Style definitions
 RED='\033[0;31m'
@@ -15,14 +12,13 @@ NC='\033[0m'
 BOLD=$(tput bold)
 NORMAL=$(tput sgr0)
 
-# Global variables
+# Variables
 PROGNAME=$(basename $0)
-USERS=""
-ROUTE=""
-SIDZERO=false
+users=""
+route=""
+sidzero=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
-
 
 # Check for requiered commands
 check_commands() {
@@ -58,7 +54,7 @@ _EOF_
 }
 
 show_error() {
-  echo -e "${RED}ERROR: $1${NC}"
+  echo -e "${RED}ERROR: $1${NC}" 1>&2
   echo -e "${RED}Please, read carefully the manual on how to use the program${NC}"
   echo $LINE
   show_help
@@ -71,29 +67,25 @@ while [ "$1" != "" ]; do
   case $1 in
     -u )
       shift
-      if [ -z "$1" ]; then
+      if [ "$1" == "" ]; then
         show_error "Option -u requires an argument"
       fi
-      USERS=$1
-      if ! grep -q "^$USERS:" /etc/passwd; then
-        show_error "User '$USERS' not found"
-        exit 1
-      fi
+      users=$1
       ;;
     -d )
       shift
-      if [ -z "$1" ]; then
+      if [ "$1" == "" ]; then
         show_error "Option -d requires an argument"
         exit 1
       fi
-      ROUTE=$1
-      if [ ! -d "$ROUTE" ]; then
-        show_error "Directory '$ROUTE' does not exist"
+      route=$1
+      if [ ! -d "$route" ]; then
+        show_error "Directory '$route' does not exist"
         exit 1
       fi
       ;;
     -z )
-      SIDZERO=true
+      sidzero=1
       ;;
     -h )
       show_help
@@ -112,36 +104,56 @@ get_ps() {
   ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user
 }
 
-apply_filters() {
+check_users() {
+  # To filter by users
+  if [ "$1" != "" ]; then
+    echo "$2" | awk -v user="$users" '$4 == user'
+  # To check if the user exists
+  if ! grep -q "^$1:" /etc/passwd; then
+    show_error "User '$users' not found"
+    exit 1
+  fi
+  else
+    echo "$2" 
+  fi
+}
+
+check_sid() {
+  if [ $1 -eq 0 ]; then
+    echo "$2" | awk '$1 != 0'
+  else
+    echo "$2"
+  fi
+}
+
+check_route() {
+  if [ "$1" != "" ]; then
+    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' '|') # To transform the pids into a regex
+    if [ "$pids" == "" ]; then
+      echo -e "${CYAN}No process is currently running the specified directory${NC}"
+      exit 0
+    fi
+    reg_expr="${pids%|}" # To eliminate the last |
+    new_ps=$(echo "$2" | grep -E "$reg_expr") # grep -E is used to match the patterns
+    if [ "$new_ps" == "" ]; then
+      echo -e "${CYAN}No process is currently running the specified directory${NC}"
+      exit 0
+    fi
+    echo "$new_ps"
+  else 
+    echo "$2"
+  fi
+}
+
+filter() {
   ps_output=$(get_ps)
-  
-  if [ -n "$USERS" ]; then
-    ps_output=$(echo "$ps_output" | awk -v user="$USERS" '$4 == user')
-  fi
-  
-  if [ "$SIDZERO" = false ]; then
-    ps_output=$(echo "$ps_output" | awk '$1 != 0')
-  fi
-  
-  if [ -n "$ROUTE" ]; then
-    pids=$(lsof +d "$ROUTE" | awk 'NR>1 {print $2}' | uniq | tr '\n' '|')
-    if [ -z "$pids" ]; then
-      echo -e "${CYAN}No process is currently running the specified directory${NC}"
-      exit 0
-    fi
-    pids_array="${pids%|}"
-    ps_output=$(echo "$ps_output" | grep -E "$pids_array")
-    if [ -z "$ps_output" ]; then
-      echo -e "${CYAN}No process is currently running the specified directory${NC}"
-      exit 0
-    fi
-  fi
-  # COUNTER=0
-  # echo "$ps_output" | awk -v var="$COUNTER$" '$1 == 0 { var++ } END { print var }'
+  ps_output=$(check_users "$users" "$ps_output") 
+  ps_output=$(check_sid "$sidzero" "$ps_output")
+  ps_output=$(check_route "$route" "$ps_output")
   echo "$ps_output"
 }
 
 check_commands
-apply_filters
+filter
 
 exit 0
