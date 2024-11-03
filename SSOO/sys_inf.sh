@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Sistemas Operativos
-
 ### CONSTANTES
 TITLE="Información del sistema para $HOSTNAME"
 RIGHT_NOW=$(date +"%x %r %Z")

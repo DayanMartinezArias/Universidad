@@ -17,6 +17,7 @@ PROGNAME=$(basename $0)
 users=""
 route=""
 sidzero=0
+stop=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
 
@@ -55,11 +56,23 @@ _EOF_
 
 show_error() {
   echo -e "${RED}ERROR: $1${NC}" 1>&2
-  echo -e "${RED}Please, read carefully the manual on how to use the program${NC}"
-  echo $LINE
-  show_help
-  echo $LINE
+  echo -e "${RED}Please, read carefully the manual on how to use the program${NC}" 1>&2
+  echo $LINE 1>&2
+  show_help 1>&2
+  echo $LINE 1>&2
   exit 1
+}
+
+count=0
+
+read_users() {
+  for usr in "$@"; do
+  if [[ $usr =~ -.* ]]; then 
+    break
+  fi
+  users="$users"$usr" "
+  count=$(($count + 1))
+  done
 }
 
 # Process all options introduced by the user
@@ -70,7 +83,13 @@ while [ "$1" != "" ]; do
       if [ "$1" == "" ]; then
         show_error "Option -u requires an argument"
       fi
-      users=$1
+      read_users "$@"
+      for arg in "$@"; do
+        if [ $count -ne 1 ]; then
+          shift
+          count=$(($count - 1))
+        fi
+      done
       ;;
     -d )
       shift
