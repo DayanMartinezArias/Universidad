@@ -153,21 +153,29 @@ check_sid() {
 
 check_route() {
   if [ "$1" != "" ]; then
-    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' '|') # To transform the pids into a regex
+    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' ' ') # To transform the pids into a regex
     if [ "$pids" == "" ]; then
       echo -e "${CYAN}No process is currently running the specified directory${NC}"
       exit 0
     fi
-    reg_expr="${pids%|}" # To eliminate the last |
-    new_ps=$(echo "$2" | grep -E "$reg_expr") # grep -E is used to match the patterns
+
+    filtered_pids=""
+    for pid in $pids; do
+      filtered_pids+="$(echo "$2" | awk -v pid="$pid" '$2 == pid')\n"
+    done
+
+    new_ps=$(echo -e "$filtered_pids" | grep -v "^$")
+
     if [ "$new_ps" == "" ]; then
-      echo -e "${CYAN}No process is currently running the specified directory${NC}"
+      echo -e "${CYAN}No process is currently running in the specified directory${NC}"
       exit 0
     fi
+
     echo "$new_ps"
   else 
     echo "$2"
   fi
+
 }
 
 filter() {
