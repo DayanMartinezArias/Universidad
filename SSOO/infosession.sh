@@ -124,16 +124,22 @@ get_ps() {
 }
 
 check_users() {
-  # To filter by users
-  if [ "$1" != "" ]; then
-    echo "$2" | awk -v user="$users" '$4 == user'
   # To check if the user exists
-  if ! grep -q "^$1:" /etc/passwd; then
-    show_error "User '$users' not found"
-    exit 1
-  fi
+  for check in $1 ; do
+    if ! grep -q "$check" /etc/passwd; then
+      show_error "User '$check' not found"
+      exit 1
+    fi
+  done
+  
+  if [ "$1" != "" ]; then
+    filtered_processes=""
+    for user in $1; do
+      filtered_processes+="$(echo "$2" | awk -v usr="$user" '$4 == usr')\n"
+    done
+    echo "$filtered_processes"
   else
-    echo "$2" 
+    echo "$2"
   fi
 }
 
