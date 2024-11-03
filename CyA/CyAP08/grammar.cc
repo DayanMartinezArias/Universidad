@@ -2,14 +2,13 @@
 
 #include <algorithm>
 #include <cctype>
-// chequear prod vacías
-// chquear prd unit
+
 
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
 }
 
-bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) {
+bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) const{
   std::string line;
   int line_counter{1};
   while (std::getline(input_file, line)) {
@@ -62,7 +61,7 @@ bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, in
   return true;
 }
 
-bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& alphabet, const Alfabeto& non_t, char& left_side, std::string& right_side) {
+bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& alphabet, const Alfabeto& non_t, char& left_side, std::string& right_side) const {
   size_t space_pos = production.find(' ');
     
     // Verifica si hay un espacio y si no está al final
@@ -87,10 +86,20 @@ bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& 
       return false;
     }
   }
+  
+  std::string new_right_side;
+  if (right_side.length() != 1) {
+    for (char symbol : right_side) {
+      if (symbol != kEmptyString) {
+        new_right_side += symbol;
+      }
+    }
+    right_side = new_right_side;
+  }
   return true;
 }
 
-bool Grammar::CheckNullProduction(const std::set<Production>& production_set, const char start_symbol) {
+bool Grammar::CheckNullProduction(const std::set<Production>& production_set, const char start_symbol) const {
   // Conjunto para almacenar símbolos que producen ε
   std::set<char> nullable_symbols;
 
@@ -100,36 +109,40 @@ bool Grammar::CheckNullProduction(const std::set<Production>& production_set, co
       nullable_symbols.insert(prod.GetSymbol());
     }
   }
-  bool changed;
-  do {
-    changed = false;
-    for (const Production& prod : production_set) {
-      const std::string& sequence = prod.GetSecuence();
-      bool all_nullable = true;
-      // Verificar si toda la secuencia de la producción pertenece a nullable_symbols
-      for (char symbol : sequence) {
-        if (nullable_symbols.find(symbol) == nullable_symbols.end()) {
-          all_nullable = false;
-          break;
-        }
-      }
-      // Si toda la secuencia es anulable y el símbolo no está en el conjunto, lo agregamos
-      if (all_nullable && nullable_symbols.insert(prod.GetSymbol()).second) {
-        changed = true;  // Marcar que hubo un cambio
-      }
-    }
-  } while (changed);
   if (nullable_symbols.empty()) {
     return true;
-  } else if (nullable_symbols.size() == 1) {
-    for (const char symbol : nullable_symbols) {
-      if (symbol == start_symbol) {
-        return true;
-      }
-    }
+  } else if (nullable_symbols.size() == 1 && nullable_symbols.count(start_symbol)) {
+    return true;
   } else {
+    std::cerr << "Invalid operation: Seems like you are defining a null production in your grammar" << std::endl;
     return false;
   }
+}
+
+bool Grammar::CheckUnitaryproductions(const std::set<Production>& production_set, const Alfabeto& non_t) const {
+  std::set<Production> unitary_prod;
+  for (const Production& prod: production_set) {
+    if (prod.GetSecuence().length() == 1) {
+      if (non_t.ExisteSimbolo(prod.GetSecuence()[0])) {
+        unitary_prod.insert(prod);
+      }
+    }
+  }
+  if (!unitary_prod.empty()) {
+    std::cerr << "Invalid operation: There are unitary productions implemented in your input" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool Grammar::CheckDefinedStartSymbol(std::set<Production> production_set, const char start_symbol) const {
+  for (const Production& prod : production_set) {
+    if (prod.GetSymbol() == start_symbol) {
+      return true;
+    }
+  }
+  std::cerr << "Invalid Operation: There's no production for the start symbol" << std::endl;
+  return false;
 }
 
 bool Grammar::Read(std::ifstream& input_file) {
@@ -148,8 +161,8 @@ bool Grammar::Read(std::ifstream& input_file) {
     return false;
   }
 
-  input_file.clear(); // Limpia cualquier estado de error
-  input_file.seekg(0, std::ios::beg); // Vuelve al inicio del archivo
+  input_file.clear();
+  input_file.seekg(0, std::ios::beg);
   
   std::string line;
   while (getline(input_file, line)) {
@@ -202,19 +215,63 @@ bool Grammar::Read(std::ifstream& input_file) {
   if (!CheckNullProduction(productions_set, start_symbol)) {
     return false;
   }
-
-  std::cout << alphabet << std::endl;
-  std::cout << non_t << std::endl;
-  for (Production prod : productions_set) {
-    std::cout << prod << std::endl;
+  if (!CheckUnitaryproductions(productions_set, non_t)) {
+    return false;
   }
-  std::cout << start_symbol << std::endl;
+  if (!CheckDefinedStartSymbol(productions_set, start_symbol)) {
+    return false;
+  }
+
+  start_symbol_ = start_symbol;
+  productions_ = productions_set;
+  non_t_ = non_t;
+  alphabet_ = alphabet;
+
   return true;   
 }
 
-// Don't allow null prod
-// Don't allow unitary prod
-// Think what to do with useless symbols and productions, or symbols that are defined but never used in the productions
-// There has to be at leats, one production (This is already controlled) But in that case the production has to be the start production
-// Si ε ∈L(G) se permite ademñás una única producción S →ε y en este caso no se permite
-// que el símbolo de arranque figure en la parte derecha de ninguna regla de producción.
+/**
+1: for all (A → X1X2 . . . Xn (con n ≥ 2, Xi ∈ (Σ ∪ V )) do
+2: for all (Xi) do
+3: if (Xi = a ∈ Σ) then
+4: Add the production Ca → a;
+5: Replace Xi with Ca in A → X1X2 . . . Xn;
+6: end if
+7: end f
+*/
+
+Grammar Grammar::ChomskyNormalForm() const {
+  for (const Production& prod : productions_) {
+    if (prod.GetSecuence().length() >= 2) {
+      for (const char& symbol : prod.GetSecuence()) {
+        if (alphabet_.ExisteSimbolo(symbol)) {
+          
+        }
+      }
+    }
+  }
+}
+
+std::ostream& operator<<(std::ostream& os, const Grammar& obj) {
+  os << "CONTEXT FREE GRAMMAR" << "\n\n";
+  os << "Terminals: " << "\n";
+  os << obj.alphabet_ << "\n";
+
+  os << "Non-terminals: " << "\n";
+  os << obj.non_t_ << "\n";
+
+  os << "Productions: " << "\n";
+  os << "{";
+  bool primero = true;  
+  for (const Production symbol : obj.productions_) { 
+    if (!primero) {
+      os << ", "; 
+    }
+   os << symbol;
+   primero = false;  
+  }
+  os << "}";
+
+  return os;
+}
+

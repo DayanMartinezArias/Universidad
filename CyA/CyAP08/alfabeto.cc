@@ -154,5 +154,11 @@ std::ostream& operator<<(std::ostream& os, const Alfabeto& obj) {
   return os;
 }
 
+Alfabeto& Alfabeto::operator=(const Alfabeto& obj) {
+  if (this != &obj) {
+   alfabeto_ = obj.alfabeto_;
+  }
+  return *this;
+}
 
 
