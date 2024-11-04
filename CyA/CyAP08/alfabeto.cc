@@ -161,4 +161,10 @@ Alfabeto& Alfabeto::operator=(const Alfabeto& obj) {
   return *this;
 }
 
-
+char Alfabeto::GetSimbolo(char symbol) const {
+  if (ExisteSimbolo(symbol)) {
+    return symbol;
+  } else {
+    return '-1';
+  }
+}

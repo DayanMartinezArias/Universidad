@@ -34,6 +34,7 @@ class Alfabeto {
   bool operator==(const Alfabeto& alfabeto) const;
   bool operator!=(const Alfabeto& alfabeto) const;
   bool ExisteSimbolo(const char simbolo) const;
+  char GetSimbolo(char symbol) const;
   void InsertarSimbolo(const char simbolo);
   std::set<char> GetAlphabet() const;
   Alfabeto& operator=(const Alfabeto& obj);

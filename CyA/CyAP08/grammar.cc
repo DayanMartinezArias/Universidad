@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
-
+#include <map>
 
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
@@ -240,16 +240,65 @@ bool Grammar::Read(std::ifstream& input_file) {
 7: end f
 */
 
+char Grammar::GenerateNewNonTerminal(const Alfabeto& new_non_t) const {
+  char new_symbol = 'A';
+    while (new_non_t.ExisteSimbolo(new_symbol)) {
+      new_symbol++; 
+  }
+  return new_symbol;
+}
+
 Grammar Grammar::ChomskyNormalForm() const {
+  Grammar chomsky_grammar;
+  std::set<Production> prod_set; 
+  std::map<char, char> associations;
+  Alfabeto exits;
+  Alfabeto new_non_t = non_t_;  // new alphabet
   for (const Production& prod : productions_) {
-    if (prod.GetSecuence().length() >= 2) {
-      for (const char& symbol : prod.GetSecuence()) {
-        if (alphabet_.ExisteSimbolo(symbol)) {
-          
+    std::string right_side{prod.GetSecuence()};
+    if (right_side.length() >= 2) {
+      for (const char& symbol : right_side) {
+        if (alphabet_.ExisteSimbolo(symbol) && !exits.ExisteSimbolo(symbol)) {
+          char new_symbol = GenerateNewNonTerminal(new_non_t);
+          new_non_t.InsertarSimbolo(new_symbol);
+          exits.InsertarSimbolo(symbol);
+          std::string new_sec(1, symbol);
+          Production new_prod(new_symbol, new_sec);
+          prod_set.insert(new_prod);
+          associations[symbol] = new_symbol; 
         }
       }
     }
   }
+  std::set<Production> new_prods;
+  std::string new_right;
+  for (const Production& prod : productions_) {
+    std::string right_side{prod.GetSecuence()};
+    if (right_side.length() >= 2) {
+      for (const char sym : right_side) {
+        if (associations.find(sym) != associations.end())  {
+          new_right += associations[sym];
+        } else {
+          new_right += sym;
+        }
+      }
+    Production f_prod(prod.GetSymbol(), new_right);
+    new_prods.insert(f_prod);
+    new_right.clear();
+    } else {
+      Production f_prod(prod.GetSymbol(), right_side);
+      new_prods.insert(f_prod);
+    } 
+  }
+
+  for (const auto& as : associations) {
+    std::cout << as.first << "|" << as.second << std::endl;
+  }
+   std::cout << "new_prodssssss" << std::endl;
+  for (const Production& prod : new_prods) {
+    std::cout << prod << std::endl;
+  }
+  return chomsky_grammar;
 }
 
 std::ostream& operator<<(std::ostream& os, const Grammar& obj) {

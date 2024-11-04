@@ -21,11 +21,12 @@ class Grammar {
   bool CheckNullProduction(const std::set<Production>& production_set, const char start_symbol) const;
   bool CheckUnitaryproductions(const std::set<Production>& production_set, const Alfabeto& non_t) const;
   bool CheckDefinedStartSymbol(std::set<Production> production_set, const char start_symbol) const;
+  char GenerateNewNonTerminal(const Alfabeto& new_non_t) const;
 
-  Alfabeto alphabet_;
-  Alfabeto non_t_;
-  char start_symbol_;
-  std::set<Production> productions_;
+  Alfabeto alphabet_;  // Alphabet of the class
+  Alfabeto non_t_;  // Set of non terminal
+  char start_symbol_; // The start symbol
+  std::set<Production> productions_; // Set of all productions
 };
 
 #endif
