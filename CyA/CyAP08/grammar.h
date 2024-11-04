@@ -14,6 +14,7 @@ class Grammar {
   bool Read(std::ifstream& input_file);
   friend std::ostream& operator<<(std::ostream& os, const Grammar& obj);
   Grammar ChomskyNormalForm() const;
+  bool Empty() const;
  private:
 
   bool ValidateProduction(const std::string& production, const Alfabeto& alphabet, const Alfabeto& non_t, char& left_side, std::string& right_side) const;

@@ -3,9 +3,15 @@
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <vector>
+#include <cctype>
 
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
+}
+
+bool Grammar::Empty() const {
+  return productions_.empty();
 }
 
 bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) const{
@@ -111,10 +117,8 @@ bool Grammar::CheckNullProduction(const std::set<Production>& production_set, co
   }
   if (nullable_symbols.empty()) {
     return true;
-  } else if (nullable_symbols.size() == 1 && nullable_symbols.count(start_symbol)) {
-    return true;
   } else {
-    std::cerr << "Invalid operation: Seems like you are defining a null production in your grammar" << std::endl;
+    std::cerr << "Invalid operation: Seems like you are defining a null production in your grammar, you are defining " << nullable_symbols.size() << " null productions" << std::endl;
     return false;
   }
 }
@@ -129,7 +133,7 @@ bool Grammar::CheckUnitaryproductions(const std::set<Production>& production_set
     }
   }
   if (!unitary_prod.empty()) {
-    std::cerr << "Invalid operation: There are unitary productions implemented in your input" << std::endl;
+    std::cerr << "Invalid operation: There are unitary productions implemented in your input, you are defining " << unitary_prod.size() << " unitary productions" << std::endl;
     return false;
   }
   return true;
@@ -183,6 +187,11 @@ bool Grammar::Read(std::ifstream& input_file) {
         return false;
       }
       char symbol = line[0];
+      if (!isupper(symbol) || !isalpha(symbol)) {
+         std::cerr << "All non-termonal symbol must be in uppercase and must be a letter" << std::endl;
+         std::cerr << "Your have defined a symbol that doesn't meet these requirements: " << symbol << std::endl;
+         return false;
+      }
        if (alphabet.ExisteSimbolo(symbol) || non_t.ExisteSimbolo(symbol)) {
         std::cerr << "Inavild operation: Seems like you are trying the define the same symbol twice, symbol: " << symbol << std::endl;
         return false;
@@ -230,16 +239,6 @@ bool Grammar::Read(std::ifstream& input_file) {
   return true;   
 }
 
-/**
-1: for all (A → X1X2 . . . Xn (con n ≥ 2, Xi ∈ (Σ ∪ V )) do
-2: for all (Xi) do
-3: if (Xi = a ∈ Σ) then
-4: Add the production Ca → a;
-5: Replace Xi with Ca in A → X1X2 . . . Xn;
-6: end if
-7: end f
-*/
-
 char Grammar::GenerateNewNonTerminal(const Alfabeto& new_non_t) const {
   char new_symbol = 'A';
     while (new_non_t.ExisteSimbolo(new_symbol)) {
@@ -250,10 +249,15 @@ char Grammar::GenerateNewNonTerminal(const Alfabeto& new_non_t) const {
 
 Grammar Grammar::ChomskyNormalForm() const {
   Grammar chomsky_grammar;
+  if (Empty()) {
+    return chomsky_grammar;
+  }
   std::set<Production> prod_set; 
   std::map<char, char> associations;
   Alfabeto exits;
-  Alfabeto new_non_t = non_t_;  // new alphabet
+  Alfabeto new_non_t = non_t_;  
+
+  // First part
   for (const Production& prod : productions_) {
     std::string right_side{prod.GetSecuence()};
     if (right_side.length() >= 2) {
@@ -292,17 +296,42 @@ Grammar Grammar::ChomskyNormalForm() const {
   }
   new_prods.insert(prod_set.begin(), prod_set.end());
 
-  for (const auto& as : associations) {
-    std::cout << as.first << "|" << as.second << std::endl;
-  }
-   std::cout << "new_prodssssss" << std::endl;
+  // Second part
+  std::set<Production> final_prods;
   for (const Production& prod : new_prods) {
-    std::cout << prod << std::endl;
+    std::string right_side = prod.GetSecuence();
+    if (right_side.length() >= 3) {
+      char current_non_terminal = prod.GetSymbol();
+      for (size_t i{0}; i < right_side.length() - 2; ++i) {
+        char new_non_terminal = GenerateNewNonTerminal(new_non_t);
+        new_non_t.InsertarSimbolo(new_non_terminal);
+        Production new_prod(current_non_terminal, right_side.substr(i, 1) + new_non_terminal);
+        final_prods.insert(new_prod);
+        current_non_terminal = new_non_terminal;
+      }
+      Production new_prod(current_non_terminal, right_side.substr(right_side.length() - 2, 2));
+      final_prods.insert(new_prod);
+    } else {
+      final_prods.insert(prod);
+    }
   }
+  chomsky_grammar.start_symbol_ = start_symbol_;
+  chomsky_grammar.non_t_ = new_non_t;
+  chomsky_grammar.productions_ = final_prods;
+  chomsky_grammar.alphabet_ = alphabet_;
+
   return chomsky_grammar;
 }
 
 std::ostream& operator<<(std::ostream& os, const Grammar& obj) {
+  if (obj.Empty()) {
+    os << "\n";
+    os << "=================================================" << "\n";
+    os << "Grammar is not defined, cannot apply CNF algorith" << "\n";
+    os << "Probably didn't read a file or there was an error" << "\n";
+    os << "=================================================" << "\n";
+    os << "\n";
+  }
   os << "CONTEXT FREE GRAMMAR" << "\n\n";
   os << "Terminals: " << "\n";
   os << obj.alphabet_ << "\n";
@@ -311,6 +340,10 @@ std::ostream& operator<<(std::ostream& os, const Grammar& obj) {
   os << obj.non_t_ << "\n";
 
   os << "Productions: " << "\n";
+  if (obj.productions_.empty()) {
+    os << "Empty set, not valid" << "\n";
+    return os;
+  }
   os << "{";
   bool primero = true;  
   for (const Production symbol : obj.productions_) { 

@@ -138,7 +138,7 @@ int Alfabeto::GetCardinal() {
  */
 std::ostream& operator<<(std::ostream& os, const Alfabeto& obj) {
   if (obj.alfabeto_.empty()) {
-    os << "Alfabeto vacío, no es válido";
+    os << "Empty alphabet, not valid";
     return os;
   }
   os << "{";
