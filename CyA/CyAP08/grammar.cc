@@ -290,6 +290,7 @@ Grammar Grammar::ChomskyNormalForm() const {
       new_prods.insert(f_prod);
     } 
   }
+  new_prods.insert(prod_set.begin(), prod_set.end());
 
   for (const auto& as : associations) {
     std::cout << as.first << "|" << as.second << std::endl;
