@@ -6,14 +6,37 @@
 #include <vector>
 #include <cctype>
 
+/**
+ * @brief Checks if all characters of a string are a digits
+ * 
+ * @param number 
+ * @return true 
+ * @return false 
+ */
 bool isNumber(const std::string& number) {
   return !number.empty() && std::all_of(number.begin(), number.end(), ::isdigit);
 }
 
+/**
+ * @brief Returns whether the grammar is empty ot not
+ * 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::Empty() const {
   return productions_.empty();
 }
 
+/**
+ * @brief Ensures that the number of lines of the input file is correct
+ * 
+ * @param input_file 
+ * @param number_of_terminals 
+ * @param number_of_non_terminals 
+ * @param number_of_productions 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, int& number_of_non_terminals, int& number_of_productions) const{
   std::string line;
   int line_counter{1};
@@ -67,6 +90,17 @@ bool Grammar::CheckLines(std::ifstream& input_file, int& number_of_terminals, in
   return true;
 }
 
+/**
+ * @brief Validates the correct format for all prductions in the input file
+ * 
+ * @param production 
+ * @param alphabet 
+ * @param non_t 
+ * @param left_side 
+ * @param right_side 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& alphabet, const Alfabeto& non_t, char& left_side, std::string& right_side) const {
   size_t space_pos = production.find(' ');
     
@@ -105,6 +139,14 @@ bool Grammar::ValidateProduction(const std::string& production, const Alfabeto& 
   return true;
 }
 
+/**
+ * @brief Checks if theres any null production in the gtrammar
+ * 
+ * @param production_set 
+ * @param start_symbol 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::CheckNullProduction(const std::set<Production>& production_set, const char start_symbol) const {
   // Conjunto para almacenar símbolos que producen ε
   std::set<char> nullable_symbols;
@@ -123,6 +165,14 @@ bool Grammar::CheckNullProduction(const std::set<Production>& production_set, co
   }
 }
 
+/**
+ * @brief Checks if there's any unitary production in the grammar
+ * 
+ * @param production_set 
+ * @param non_t 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::CheckUnitaryproductions(const std::set<Production>& production_set, const Alfabeto& non_t) const {
   std::set<Production> unitary_prod;
   for (const Production& prod: production_set) {
@@ -139,6 +189,14 @@ bool Grammar::CheckUnitaryproductions(const std::set<Production>& production_set
   return true;
 }
 
+/**
+ * @brief Ensures that the grammar has at least one production for the start symbol
+ * 
+ * @param production_set 
+ * @param start_symbol 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::CheckDefinedStartSymbol(std::set<Production> production_set, const char start_symbol) const {
   for (const Production& prod : production_set) {
     if (prod.GetSymbol() == start_symbol) {
@@ -149,6 +207,13 @@ bool Grammar::CheckDefinedStartSymbol(std::set<Production> production_set, const
   return false;
 }
 
+/**
+ * @brief Reads an input file and defines the grammar
+ * 
+ * @param input_file 
+ * @return true 
+ * @return false 
+ */
 bool Grammar::Read(std::ifstream& input_file) {
   int number_of_terminals{0};
   int number_of_non_terminals{0};
@@ -239,14 +304,29 @@ bool Grammar::Read(std::ifstream& input_file) {
   return true;   
 }
 
+/**
+ * @brief Generates a new non terminal symbol. Used when converting to CNF
+ * 
+ * @param new_non_t 
+ * @return char 
+ */
 char Grammar::GenerateNewNonTerminal(const Alfabeto& new_non_t) const {
   char new_symbol = 'A';
     while (new_non_t.ExisteSimbolo(new_symbol)) {
       new_symbol++; 
+      if (new_symbol > 'Z') {
+        std::cerr << "Limit of Symbols for non terminals has been surpassed, cannot convert to CNF" << std::endl;
+        return '1';
+      }
   }
   return new_symbol;
 }
 
+/**
+ * @brief Converts a grammar to CNF
+ * 
+ * @return Grammar 
+ */
 Grammar Grammar::ChomskyNormalForm() const {
   Grammar chomsky_grammar;
   if (Empty()) {
@@ -264,6 +344,9 @@ Grammar Grammar::ChomskyNormalForm() const {
       for (const char& symbol : right_side) {
         if (alphabet_.ExisteSimbolo(symbol) && !exits.ExisteSimbolo(symbol)) {
           char new_symbol = GenerateNewNonTerminal(new_non_t);
+          if (new_symbol == '1') {
+            return chomsky_grammar;
+          }
           new_non_t.InsertarSimbolo(new_symbol);
           exits.InsertarSimbolo(symbol);
           std::string new_sec(1, symbol);
@@ -304,6 +387,9 @@ Grammar Grammar::ChomskyNormalForm() const {
       char current_non_terminal = prod.GetSymbol();
       for (size_t i{0}; i < right_side.length() - 2; ++i) {
         char new_non_terminal = GenerateNewNonTerminal(new_non_t);
+        if (new_non_terminal == '1') {
+          return chomsky_grammar;
+        }
         new_non_t.InsertarSimbolo(new_non_terminal);
         Production new_prod(current_non_terminal, right_side.substr(i, 1) + new_non_terminal);
         final_prods.insert(new_prod);
@@ -323,38 +409,74 @@ Grammar Grammar::ChomskyNormalForm() const {
   return chomsky_grammar;
 }
 
+/**
+ * @brief Prints all productions of the grammar
+ * 
+ * @param os 
+ * @param obj 
+ * @return std::ostream& 
+ */
 std::ostream& operator<<(std::ostream& os, const Grammar& obj) {
-  if (obj.Empty()) {
+    if (obj.Empty()) {
     os << "\n";
     os << "=================================================" << "\n";
     os << "Grammar is not defined, cannot apply CNF algorith" << "\n";
     os << "Probably didn't read a file or there was an error" << "\n";
     os << "=================================================" << "\n";
     os << "\n";
-  }
-  os << "CONTEXT FREE GRAMMAR" << "\n\n";
-  os << "Terminals: " << "\n";
-  os << obj.alphabet_ << "\n";
-
-  os << "Non-terminals: " << "\n";
-  os << obj.non_t_ << "\n";
-
-  os << "Productions: " << "\n";
-  if (obj.productions_.empty()) {
-    os << "Empty set, not valid" << "\n";
     return os;
   }
-  os << "{";
-  bool primero = true;  
-  for (const Production symbol : obj.productions_) { 
-    if (!primero) {
-      os << ", "; 
-    }
-   os << symbol;
-   primero = false;  
+  os << obj.alphabet_.GetCardinal() << "\n";
+  for (const char& symbol : obj.alphabet_.GetAlphabet()) {
+    os << symbol << "\n";
   }
-  os << "}";
-
+  os << obj.non_t_.GetCardinal() << "\n";
+  os << obj.start_symbol_ << "\n";
+  for (const char& symbol : obj.non_t_.GetAlphabet()) {
+    if (symbol == obj.start_symbol_) {
+      continue;
+    }
+    os << symbol << "\n";
+  }
+  os << obj.productions_.size() << "\n";
+  for (const Production& prod : obj.productions_) {
+    os << prod.GetSymbol() << " " << prod.GetSecuence() << "\n";
+  }
   return os;
 }
 
+/**
+ * @brief Prints more visual info about the grammar
+ * 
+ */
+void Grammar::PrintInfo() const {
+ if (Empty()) {
+    std::cout << "\n";
+    std::cout << "=================================================" << "\n";
+    std::cout << "Grammar is not defined, cannot apply CNF algorith" << "\n";
+    std::cout << "Probably didn't read a file or there was an error" << "\n";
+    std::cout << "=================================================" << "\n";
+    std::cout << "\n";
+  }
+  std::cout << "CONTEXT FREE GRAMMAR" << "\n\n";
+  std::cout << "Terminals: " << "\n";
+  std::cout << alphabet_ << "\n";
+
+  std::cout << "Non-terminals: " << "\n";
+  std::cout << non_t_ << "\n";
+
+  std::cout << "Productions: " << "\n";
+  if (productions_.empty()) {
+    std::cout << "Empty set, not valid" << "\n";
+  }
+  std::cout << "{";
+  bool primero = true;  
+  for (const Production symbol : productions_) { 
+    if (!primero) {
+      std::cout << ", "; 
+    }
+   std::cout << symbol;
+   primero = false;  
+  }
+  std::cout << "}";
+}

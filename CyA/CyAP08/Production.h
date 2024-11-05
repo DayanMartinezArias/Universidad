@@ -12,12 +12,10 @@ public:
   bool operator<(const Production& other) const;
   char GetSymbol() const;
   std::string GetSecuence() const;
-
-  // Declaración del operador << para la clase Production
   friend std::ostream& operator<<(std::ostream& os, const Production& obj);
 
 private:
-  std::pair<char, std::string> production_;
+  std::pair<char, std::string> production_; // std::pair that stores each side of the production
 };
 
-#endif // PRODUCTION_H
+#endif 

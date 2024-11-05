@@ -38,10 +38,10 @@ class Alfabeto {
   void InsertarSimbolo(const char simbolo);
   std::set<char> GetAlphabet() const;
   Alfabeto& operator=(const Alfabeto& obj);
-  int GetCardinal();
+  int GetCardinal() const;
   bool Vacio() const;
  private:
-  std::set<char> alfabeto_;
+  std::set<char> alfabeto_; // set of symbols that define the alphabet
 };
 
 #endif
