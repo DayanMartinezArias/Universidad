@@ -20,8 +20,10 @@ sidzero=0
 stop=0
 e_opt=0
 t_opt=0
+count=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
+NOMATCH=$(echo -e "${CYAN}SEEMS LIKE THERE IS NOT ANY MATCHES FOR THE SPECIFIED OPTIONS${NC}")
 
 # Check for requiered commands
 check_commands() {
@@ -34,6 +36,10 @@ check_commands() {
 # Function to show a help message
 show_help() {
   cat << _EOF_
+$LINE
+                   SYSTEM INFORMATION
+                      HELP MANUAL
+$LINE
 Usage: $PROGNAME [OPTIONS]
 
 $WARNING
@@ -45,27 +51,27 @@ ${BOLD}-z:${NORMAL}
 Show all processes with SID 0 
 
 ${BOLD}-u user:${NORMAL}
-Show all processes of a specific user-->
--A user must be introduced after the -u option-
--The user must be a real user on your computer-   
+Show all processes of a specific user
+-A user must be introduced after the -u option
+-The user must be a real user on your computer
 
 ${BOLD}-d directory:${NORMAL}
-Show all processes accessing a specific directory-->
--A user must be introduced after the -u option-
--The user must be a real user on your computer-  
+Show all processes accessing a specific directory
+-A user must be introduced after the -u option
+-The user must be a real user on your computer
 _EOF_
 }
 
 show_error() {
-  echo -e "${RED}ERROR: $1${NC}" 1>&2
-  echo -e "${RED}Please, read carefully the manual on how to use the program${NC}" 1>&2
-  echo $LINE 1>&2
+  echo -e "${RED}${BOLD}$LINE${NC}"
+  echo -e "${RED}${BOLD}                   AN ERROR HAPPENED          ${NC}"
+  echo -e "${RED}${BOLD}$LINE${NC}"
+  echo -e "${RED}${BOLD}ERROR MESSAGE: ${NC}${RED}$1${NC}" 1>&2
+  echo
+  echo -e "${YELLOW}Please, read carefully the manual below on how to use the program${NC}" 1>&2
   show_help 1>&2
-  echo $LINE 1>&2
   exit 1
 }
-
-count=0
 
 read_users() {
   for usr in "$@"; do
@@ -77,15 +83,28 @@ read_users() {
   done
 }
 
+block_rep() {
+  if [ "$1" != "" ]; then
+    show_error "Duplicated option, please avoid doing this with -d and -u"
+  fi
+}
+
+
 # Process all options introduced by the user
 while [ "$1" != "" ]; do
   case $1 in
     -u )
       shift
+      # Other commands options don't really affect that much the program if the're repeated. 
+      # But -u repeated could lead to unexpected behaviour
+      block_rep "$users"
       if [ "$1" == "" ]; then
         show_error "Option -u requires an argument"
       fi
       read_users "$@"
+      # After read_users, all users will be stored in a variable
+      # Also, there will be a counter with x value of users
+      # So the program can shift them all to the next option
       for arg in "$@"; do
         if [ $count -ne 1 ]; then
           shift
@@ -95,6 +114,8 @@ while [ "$1" != "" ]; do
       ;;
     -d )
       shift
+      # Same thing as -u happens with option -d
+      block_rep "$route"
       if [ "$1" == "" ]; then
         show_error "Option -d requires an argument"
         exit 1
@@ -141,11 +162,12 @@ check_users() {
   done
   
   if [ "$1" != "" ]; then
-    filtered_processes=""
+    filt_proc=""
     for user in $1; do
-      filtered_processes+="$(echo "$2" | awk -v usr="$user" '$4 == usr')\n"
+      filt_proc+="$(echo "$2" | awk -v usr="$user" '$4 == usr')"
+      filt_proc+=$'\n'
     done
-    echo "$filtered_processes"
+    echo "$filt_proc"
   else
     echo "$2"
   fi
@@ -161,7 +183,7 @@ check_sid() {
 
 check_route() {
   if [ "$1" != "" ]; then
-    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' ' ') # To transform the pids into a regex
+    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' ' ') 
     if [ "$pids" == "" ]; then
       echo -e "${CYAN}No process is currently running the specified directory${NC}"
       exit 0
@@ -169,17 +191,16 @@ check_route() {
 
     filtered_pids=""
     for pid in $pids; do
-      filtered_pids+="$(echo "$2" | awk -v pid="$pid" '$2 == pid')\n"
+      filtered_pids+="$(echo "$2" | awk -v pid="$pid" '$2 == pid')"
+      filtered_pids+=$'\n' 
     done
 
-    new_ps=$(echo -e "$filtered_pids" | grep -v "^$")
-
-    if [ "$new_ps" == "" ]; then
+    if [ "$filtered_pids" == "" ]; then
       echo -e "${CYAN}No process is currently running in the specified directory${NC}"
       exit 0
     fi
 
-    echo "$new_ps"
+    echo "$filtered_pids"
   else 
     echo "$2"
   fi
@@ -198,6 +219,8 @@ session_table() {
   ps_output="$1" 
   sessions=$(echo "$ps_output" | awk 'NR>1 {print $1}' | uniq)
 
+  printf "%-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "TTY"
+
   for sid in $sessions; do
     process=$(echo "$ps_output" | awk -v sid="$sid" '$1 == sid')
 
@@ -213,7 +236,6 @@ session_table() {
       leader_tty="?" 
       leader_cmd="?"
     fi
-
     final_res+="$sid\t$num_groups\t$leader_pid\t$leader_user\t$leader_tty\t$leader_cmd\n" 
   done
   echo -e $final_res | sort --key 4
@@ -226,11 +248,17 @@ filter() {
   ps_output=$(check_sid "$sidzero" "$ps_output")
   ps_output=$(check_route "$route" "$ps_output")
   ps_output=$(check_terminal "$ps_output")
+
+  if [ "$ps_output" == "" ];then 
+    echo -e $NOMATCH
+    exit 0
+  fi
   
   if [ $e_opt -eq 1 ]; then 
     echo "$ps_output" 
   else 
-    session_table "$ps_output" 
+    final_session_table=$(session_table "$ps_output")
+    echo "$final_session_table" 
   fi
 }
 
