@@ -18,6 +18,8 @@ users=""
 route=""
 sidzero=0
 stop=0
+e_opt=0
+t_opt=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
 
@@ -106,6 +108,12 @@ while [ "$1" != "" ]; do
     -z )
       sidzero=1
       ;;
+    -e )
+      e_opt=1
+      ;;
+    -t )
+      t_opt=1
+      ;; 
     -h )
       show_help
       exit 0
@@ -178,12 +186,52 @@ check_route() {
 
 }
 
+check_terminal() {
+  if [ $t_opt -eq 1 ]; then 
+    echo "$1" | awk -v symbol="?" '$5 != symbol'
+  else 
+    echo "$1"
+  fi
+}
+
+session_table() { 
+  ps_output="$1" 
+  sessions=$(echo "$ps_output" | awk 'NR>1 {print $1}' | uniq)
+
+  for sid in $sessions; do
+    process=$(echo "$ps_output" | awk -v sid="$sid" '$1 == sid')
+
+    num_groups=$(echo "$process" | awk '{print $2}' | uniq | wc -l)
+    leader_pid=$(echo "$process" | awk -v sid="$sid" '$1 == sid && $3 == sid {print $3}') 
+    leader_user=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $4}') 
+    leader_tty=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $5}') 
+    leader_cmd=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $7}')
+
+    if [ "$leader_pid" == "" ]; then 
+      leader_pid="?" 
+      leader_user="?" 
+      leader_tty="?" 
+      leader_cmd="?"
+    fi
+
+    final_res+="$sid\t$num_groups\t$leader_pid\t$leader_user\t$leader_tty\t$leader_cmd\n" 
+  done
+  echo -e $final_res | sort --key 4
+}
+
 filter() {
+
   ps_output=$(get_ps)
   ps_output=$(check_users "$users" "$ps_output") 
   ps_output=$(check_sid "$sidzero" "$ps_output")
   ps_output=$(check_route "$route" "$ps_output")
-  echo "$ps_output"
+  ps_output=$(check_terminal "$ps_output")
+  
+  if [ $e_opt -eq 1 ]; then 
+    echo "$ps_output" 
+  else 
+    session_table "$ps_output" 
+  fi
 }
 
 check_commands
