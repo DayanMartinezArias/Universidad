@@ -1,18 +1,6 @@
-2
-a
-b
-6
-S
-A
-B
-C
-D
-E
-7
-A a
-B b
-C BB
-D SE
-E BB
-S AC
-S AD
+
+=================================================
+Grammar is not defined, cannot apply CNF algorith
+Probably didn't read a file or there was an error
+=================================================
+
