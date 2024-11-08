@@ -1,0 +1,120 @@
+$date
+	Fri Nov  8 23:01:06 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	10ps
+$end
+$scope module alu $end
+$var wire 8 ! A [7:0] $end
+$var wire 8 " B [7:0] $end
+$var wire 3 # Op [2:0] $end
+$var reg 8 $ S [7:0] $end
+$var reg 1 % zero $end
+$upscope $end
+$scope module ffd $end
+$var wire 1 & carga $end
+$var wire 1 ' clk $end
+$var wire 1 ( d $end
+$var wire 1 ) reset $end
+$var reg 1 * q $end
+$upscope $end
+$scope module memprog $end
+$var wire 10 + Address [9:0] $end
+$var wire 16 , Data [15:0] $end
+$var wire 1 - clk $end
+$upscope $end
+$scope module microc $end
+$var wire 3 . Op [2:0] $end
+$var wire 6 / Opcode [5:0] $end
+$var wire 1 0 clk $end
+$var wire 1 1 reset $end
+$var wire 1 2 s_inc $end
+$var wire 1 3 s_inm $end
+$var wire 1 4 we3 $end
+$var wire 1 5 wez $end
+$var wire 1 6 z $end
+$upscope $end
+$scope module microc_tb $end
+$upscope $end
+$scope module mux2 $end
+$var wire 8 7 D0 [7:0] $end
+$var wire 8 8 D1 [7:0] $end
+$var wire 1 9 s $end
+$var wire 8 : Y [7:0] $end
+$var parameter 32 ; WIDTH $end
+$upscope $end
+$scope module regfile $end
+$var wire 4 < RA1 [3:0] $end
+$var wire 4 = RA2 [3:0] $end
+$var wire 4 > WA3 [3:0] $end
+$var wire 8 ? WD3 [7:0] $end
+$var wire 1 @ clk $end
+$var wire 1 A we3 $end
+$var wire 8 B RD2 [7:0] $end
+$var wire 8 C RD1 [7:0] $end
+$upscope $end
+$scope module registro $end
+$var wire 8 D D [7:0] $end
+$var wire 1 E clk $end
+$var wire 1 F reset $end
+$var parameter 32 G WIDTH $end
+$var reg 8 H Q [7:0] $end
+$upscope $end
+$scope module sum $end
+$var wire 10 I A [9:0] $end
+$var wire 10 J B [9:0] $end
+$var wire 10 K Y [9:0] $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b1000 G
+b1000 ;
+$end
+#0
+$dumpvars
+bx K
+bz J
+bz I
+bx H
+zF
+zE
+bz D
+bx C
+bx B
+zA
+z@
+bz ?
+bz >
+bz =
+bz <
+bz :
+z9
+bz 8
+bz 7
+z6
+z5
+z4
+z3
+z2
+z1
+z0
+bz /
+bz .
+z-
+bx ,
+bz +
+x*
+z)
+z(
+z'
+z&
+x%
+bx $
+bz #
+bz "
+bz !
+$end
