@@ -28,6 +28,8 @@ count=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
 NOMATCH=$(echo -e "${CYAN}SEEMS LIKE THERE IS NOT ANY MATCHES FOR THE SPECIFIED OPTIONS${NC}")
+DEF=$(echo -e "${YELLOW}By default the table is sorted by username!!!${NC}")
+ARROW=$(echo -e "${YELLOW}->${NC}")
 
 # Check for requiered commands
 check_commands() {
@@ -56,13 +58,26 @@ Show all processes with SID 0
 
 ${BOLD}-u user:${NORMAL}
 Show all processes of a specific user
--A user must be introduced after the -u option
--The user must be a real user on your computer
+${ARROW}A user must be introduced after the -u option
+${ARROW}The user must be a real user on your computer
 
 ${BOLD}-d directory:${NORMAL}
 Show all processes accessing a specific directory
--A user must be introduced after the -u option
--The user must be a real user on your computer
+${ARROW}A user must be introduced after the -u option
+${ARROW}The user must be a real user on your computer
+
+${BOLD}-e:${NORMAL}
+Process table mode, where information about running processes is shown.
+${ARROW}When this option isn't selected, the the program shows information about sessions
+
+${BOLD}-t:${NORMAL}
+Shows only processes wich have an associated terminal
+
+${BOLD}Sorting options:${NORMAL}
+-sm: Sorts by memory usage
+-sg Sorts by numbers of groups of a session
+-r Reverts all sorting methods
+$DEF
 _EOF_
 }
 
@@ -213,9 +228,9 @@ check_route() {
       exit 0
     fi
 
-    echo "$filtered_pids"
+    echo "$filtered_pids" | grep -v '^$'
   else 
-    echo "$2"
+    echo "$2" 
   fi
 
 }
@@ -231,8 +246,6 @@ check_terminal() {
 session_table() { 
   ps_output="$1" 
   sessions=$(echo "$ps_output" | awk 'NR>1 {print $1}' | uniq)
-
- # printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "MEM" "TTY"
 
   for sid in $sessions; do
     process=$(echo "$ps_output" | awk -v sid="$sid" '$1 == sid')
@@ -252,16 +265,27 @@ session_table() {
     fi
     final_res+="$sid\t$num_groups\t$leader_pid\t$leader_user\t$leader_tty\t$total_mem\t$leader_cmd\n" 
   done
-  echo -e $final_res | sort --key 4
+  echo -e $final_res | sort --key 4 | uniq
 }
 
 order_by() {
+  ordered=""
+  rev=""
   if [ $sm_opt -eq 1 ]; then
-    echo "$1" | sort -V -k 6
+    ordered=$(echo "$1" | sort -V -k 6)
+    rev=$(echo "$1" | sort -r -V -k 6)
   elif [ $sg_opt -eq 1 ]; then
-    echo "$1" | sort -k 2
+    ordered=$(echo "$1" | sort -k 2)
+    rev=$(echo "$1" | sort -r -k 2)
   else 
-    echo "$1"
+    ordered=$(echo "$1" | sort -k 4)
+    rev=$(echo "$1" | sort -r -k 4)
+  fi
+
+  if [ $reverse -eq 1 ];then
+    echo "$rev"
+  else 
+    echo "$ordered"
   fi
 }
 
@@ -280,16 +304,20 @@ filter() {
 
   final_table=""
 
+  if [[ ($sg_opt -eq 1 && $sm_opt -eq 1) || ($sg_opt -eq 1 && $e_opt -eq 1) ]]; then
+    show_error "Invalid options : -sg isn't compatible with -sm and -e"
+  fi
+
   if [ $e_opt -eq 1 ]; then 
+    # sid,pgid,pid,user,tty,%mem,cmd
+    printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "PGID" "PID" "USR" "TTY" "MEM" "CMD"
     final_table="$ps_output"
   else 
+    printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "TTY" "MEM" "CMD"
     final_session_table=$(session_table "$ps_output")
     final_table="$final_session_table" 
   fi
   
-  if [[ ($sg_opt -eq 1 && $sm_opt -eq 1) || ($sg_opt -eq 1 && $e_opt -eq 1) ]]; then
-    show_error "Invalid options : -sg isn't compatible with -sm and -e"
-  fi
   final_table=$(order_by "$final_table")
   echo "$final_table"
 }
