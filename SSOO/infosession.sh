@@ -244,11 +244,11 @@ check_terminal() {
 }
 
 session_table() { 
-  ps_output="$1" 
-  sessions=$(echo "$ps_output" | awk 'NR>1 {print $1}' | uniq)
+  ps_tab="$1" 
+  sessions=$(echo "$ps_tab" | awk 'NR>1 {print $1}' | uniq)
 
   for sid in $sessions; do
-    process=$(echo "$ps_output" | awk -v sid="$sid" '$1 == sid')
+    process=$(echo "$ps_tab" | awk -v sid="$sid" '$1 == sid')
 
     num_groups=$(echo "$process" | awk '{print $2}' | uniq | wc -l)
     leader_pid=$(echo "$process" | awk -v sid="$sid" '$1 == sid && $3 == sid {print $3}') 
@@ -291,13 +291,13 @@ order_by() {
 
 filter() {
 
-  ps_output=$(get_ps)
-  ps_output=$(check_users "$users" "$ps_output") 
-  ps_output=$(check_sid "$sidzero" "$ps_output")
-  ps_output=$(check_route "$route" "$ps_output")
-  ps_output=$(check_terminal "$ps_output")
+  ps_tab=$(get_ps)
+  ps_tab=$(check_users "$users" "$ps_tab") 
+  ps_tab=$(check_sid "$sidzero" "$ps_tab")
+  ps_tab=$(check_route "$route" "$ps_tab")
+  ps_tab=$(check_terminal "$ps_tab")
 
-  if [ "$ps_output" == "" ];then 
+  if [ "$ps_tab" == "" ];then 
     echo -e $NOMATCH
     exit 0
   fi
@@ -311,10 +311,10 @@ filter() {
   if [ $e_opt -eq 1 ]; then 
     # sid,pgid,pid,user,tty,%mem,cmd
     printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "PGID" "PID" "USR" "TTY" "MEM" "CMD"
-    final_table="$ps_output"
+    final_table="$ps_tab"
   else 
     printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "TTY" "MEM" "CMD"
-    final_session_table=$(session_table "$ps_output")
+    final_session_table=$(session_table "$ps_tab")
     final_table="$final_session_table" 
   fi
   
