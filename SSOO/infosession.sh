@@ -14,12 +14,16 @@ NORMAL=$(tput sgr0)
 
 # Variables
 PROGNAME=$(basename $0)
+BASHUSER=$(whoami)
 users=""
 route=""
 sidzero=0
 stop=0
 e_opt=0
 t_opt=0
+sm_opt=0
+sg_opt=0
+reverse=0
 count=0
 LINE="==========================================================="
 WARNING=$(echo -e "${YELLOW}It is important to have awk, lsof, grep and ps previously installed!!${NC}")
@@ -135,6 +139,15 @@ while [ "$1" != "" ]; do
     -t )
       t_opt=1
       ;; 
+    -sm )
+      sm_opt=1
+      ;;
+    -sg )
+      sg_opt=1
+      ;;
+    -r )
+      reverse=1
+      ;;
     -h )
       show_help
       exit 0
@@ -169,7 +182,7 @@ check_users() {
     done
     echo "$filt_proc"
   else
-    echo "$2"
+    echo "$2" | awk -v usr="$BASHUSER" '$4 == usr'
   fi
 }
 
@@ -219,13 +232,14 @@ session_table() {
   ps_output="$1" 
   sessions=$(echo "$ps_output" | awk 'NR>1 {print $1}' | uniq)
 
-  printf "%-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "TTY"
+ # printf "%-10s %-10s %-10s %-10s %-10s %-10s %s\n" "SID" "N_groups" "PID" "USR" "MEM" "TTY"
 
   for sid in $sessions; do
     process=$(echo "$ps_output" | awk -v sid="$sid" '$1 == sid')
 
     num_groups=$(echo "$process" | awk '{print $2}' | uniq | wc -l)
     leader_pid=$(echo "$process" | awk -v sid="$sid" '$1 == sid && $3 == sid {print $3}') 
+    total_mem=$(echo "$process" | LC_ALL=C awk '{mem_sum += $6} END {print mem_sum}')
     leader_user=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $4}') 
     leader_tty=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $5}') 
     leader_cmd=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $7}')
@@ -236,9 +250,19 @@ session_table() {
       leader_tty="?" 
       leader_cmd="?"
     fi
-    final_res+="$sid\t$num_groups\t$leader_pid\t$leader_user\t$leader_tty\t$leader_cmd\n" 
+    final_res+="$sid\t$num_groups\t$leader_pid\t$leader_user\t$leader_tty\t$total_mem\t$leader_cmd\n" 
   done
   echo -e $final_res | sort --key 4
+}
+
+order_by() {
+  if [ $sm_opt -eq 1 ]; then
+    echo "$1" | sort -V -k 6
+  elif [ $sg_opt -eq 1 ]; then
+    echo "$1" | sort -k 2
+  else 
+    echo "$1"
+  fi
 }
 
 filter() {
@@ -253,13 +277,21 @@ filter() {
     echo -e $NOMATCH
     exit 0
   fi
-  
+
+  final_table=""
+
   if [ $e_opt -eq 1 ]; then 
-    echo "$ps_output" 
+    final_table="$ps_output"
   else 
     final_session_table=$(session_table "$ps_output")
-    echo "$final_session_table" 
+    final_table="$final_session_table" 
   fi
+  
+  if [[ ($sg_opt -eq 1 && $sm_opt -eq 1) || ($sg_opt -eq 1 && $e_opt -eq 1) ]]; then
+    show_error "Invalid options : -sg isn't compatible with -sm and -e"
+  fi
+  final_table=$(order_by "$final_table")
+  echo "$final_table"
 }
 
 check_commands
