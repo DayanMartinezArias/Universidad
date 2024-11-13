@@ -175,7 +175,7 @@ while [ "$1" != "" ]; do
   shift
 done
 
-# Execute the ps command
+# To execute the ps command
 get_ps() {
   ps ax -o sid,pgid,pid,user,tty,%mem,cmd --sort=user
 }
@@ -189,6 +189,7 @@ check_users() {
     fi
   done
   
+  # To start filtering all procesess that match the user
   if [ "$1" != "" ]; then
     filt_proc=""
     for user in $1; do
@@ -210,13 +211,15 @@ check_sid() {
 }
 
 check_route() {
+  # To make a list of all pids of wich a process is running in the selected directory
   if [ "$1" != "" ]; then
-    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | uniq | tr '\n' ' ') 
+    pids=$(lsof +d "$1" | awk 'NR>1 {print $2}' | sort | uniq | tr '\n' ' ') 
     if [ "$pids" == "" ]; then
       echo -e "${CYAN}No process is currently running the specified directory${NC}"
       exit 0
     fi
-
+    
+    # Just like the users, the processes are filtered (In this case by pids)
     filtered_pids=""
     for pid in $pids; do
       filtered_pids+="$(echo "$2" | awk -v pid="$pid" '$2 == pid')"
@@ -245,12 +248,12 @@ check_terminal() {
 
 session_table() { 
   ps_tab="$1" 
-  sessions=$(echo "$ps_tab" | awk 'NR>1 {print $1}' | uniq)
+  sessions=$(echo "$ps_tab" | awk 'NR>1 {print $1}' | sort | uniq)
 
   for sid in $sessions; do
     process=$(echo "$ps_tab" | awk -v sid="$sid" '$1 == sid')
 
-    num_groups=$(echo "$process" | awk '{print $2}' | uniq | wc -l)
+    num_groups=$(echo "$process" | awk '{print $2}' | wc -l)
     leader_pid=$(echo "$process" | awk -v sid="$sid" '$1 == sid && $3 == sid {print $3}') 
     total_mem=$(echo "$process" | LC_ALL=C awk '{mem_sum += $6} END {print mem_sum}')
     leader_user=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $4}') 
