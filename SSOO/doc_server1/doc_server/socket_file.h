@@ -49,13 +49,19 @@ int listen_connection(const SafeFD& sock_fd) {
   return EXIT_SUCCESS;
 }
 
-std::expected<SafeFD, int> accept_connection(const SafeFD& sock_fd, sockaddr_in& client_addr) {
+std::expected<SafeFD, int> accept_connection(const SafeFD& sock_fd, sockaddr_in& client_addr, const bool verbose) {
   socklen_t source_address_length = sizeof(client_addr);
 
   // Aceptar la primera conexión que llegue
   SafeFD new_fd{accept(sock_fd.get(), reinterpret_cast<sockaddr*>(&client_addr), &source_address_length)};
   if (!new_fd.is_valid()) {
     return std::unexpected(errno);
+  }
+
+  if (verbose) {
+    char buffer[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(client_addr.sin_addr), buffer, INET_ADDRSTRLEN);
+    std::cout << "connecting to IP: " << buffer << ", on port: " << ntohs(client_addr.sin_port) << std::endl;
   }
   return new_fd;
 }

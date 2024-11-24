@@ -67,6 +67,21 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
  if (options.additional_args.empty()) {
    return std::unexpected(parse_args_errors::missing_file_name);
  }
+
+ std::string port_str{getenv("DOCSERVER_PORT")};
+ 
+ if (options.port == 0 && !port_str.empty()) {
+  for (char c : port_str) {
+    if (!std::isdigit(c)) {
+      return std::unexpected(parse_args_errors::invalid_port);
+    }
+  }
+  int port = std::stoi(getenv("DOCSERVER_PORT"));
+  options.port = static_cast<uint16_t>(port);
+ } else if (options.port == 0 && port_str.empty()) {
+  options.port = 8080;
+ }
+ 
 return options;
 }
 
@@ -79,6 +94,12 @@ int send_response(const SafeFD& new_fd, std::string_view header, std::string_vie
   ssize_t bytes_sent_body = send(new_fd.get(), body.data(), body.size(), 0);
   if (bytes_sent_body < 0) {
    return errno;
+  }
+
+  std::string blank_line = "\n";
+  ssize_t bytes_sent_blank = send(new_fd.get(), blank_line.data(), blank_line.size(), 0);
+  if (bytes_sent_blank < 0) {
+    return errno;
   }
   return EXIT_SUCCESS;
 }
@@ -119,11 +140,21 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
    return SafeMap{std::string_view(static_cast<char*>(mem), length), length}; // Retornar vista del archivo
 }
 
+std::string getenv(const std::string& name) {
+  char* value = getenv(name.c_str());
+  if (value) {
+    return std::string(value);
+  }
+  else {
+    return std::string();
+  }
+}
 
 void help() {
   std::cout << "Use: server [options]" << std::endl;
   std::cout << "-h, --help: Show a help message on how to use the program" << std::endl;
   std::cout << "-v, --verbose: Shows informative messages through the terminal" << std::endl;
+  std::cout << "-p, --port: Selects the port in wich the socket will be listening on" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -151,10 +182,9 @@ int main(int argc, char* argv[]) {
     std::cout << "verbose: option selected" << std::endl;
   }
 
-  // new socket
   auto sock = make_socket(options.value().port);
   if (!sock.has_value()) {
-    std::cerr << "Faiiled to make socket" << std::endl;
+    std::cerr << "Failed to make socket" << std::endl;
     return EXIT_FAILURE;
   }
   if (listen_connection(sock.value()) != EXIT_SUCCESS) {
@@ -169,10 +199,10 @@ int main(int argc, char* argv[]) {
     // Accept connections in a loop
   sockaddr_in client_addr{};
   while (true) {
-    auto connection = accept_connection(sock.value(), client_addr);
+    auto connection = accept_connection(sock.value(), client_addr, options.value().verbose);
     if (!connection.has_value()) {
       std::cerr << "Error accepting connection: " << std::endl;
-      continue;
+      return EXIT_FAILURE;
     }
     std::string header;
 
@@ -185,8 +215,10 @@ int main(int argc, char* argv[]) {
     else if (content.error() == 2) {
       header = "404 NOT FOUND";
     }
-    send_response(connection.value(), header);
-    continue;
+    if(send_response(connection.value(), header) ==  ECONNRESET) {
+      std::cerr << "Could not send a response" << std::endl;
+      continue;
+    }
   }
   size_t sz{content.value().get().size()};
   header = std::format("Content-Length: {}\n", sz);
@@ -194,9 +226,11 @@ int main(int argc, char* argv[]) {
     std::cout << "send: file content to be send" << std::endl;
     std::cout << "-----------------------------" << std::endl;
   }
-  send_response(connection.value(), header, content.value().get());
-  continue;
+  if(send_response(connection.value(), header, content.value().get()) ==  ECONNRESET) {
+    std::cerr << "Could not send a response" << std::endl;
+    continue;
   }
+}
 
   return EXIT_SUCCESS;
 }
