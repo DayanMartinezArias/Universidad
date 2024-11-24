@@ -1,6 +1,22 @@
-
-=================================================
-Grammar is not defined, cannot apply CNF algorith
-Probably didn't read a file or there was an error
-=================================================
-
+3
+a
+b
+c
+4
+S
+A
+B
+C
+6
+A BC
+A a
+B a
+C b
+S AC
+S b
+S BBa
+C CC
+A ABBBABABC
+C ACCaabbba
+A baa
+A AAbabACaCCB

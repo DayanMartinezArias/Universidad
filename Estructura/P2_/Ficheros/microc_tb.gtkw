@@ -1,0 +1,51 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Tue Nov 19 13:49:32 2024
+[*]
+[dumpfile] "/home/dayan/Escritorio/Universidad/Estructura/P2_/Ficheros/microc_tb.vcd"
+[dumpfile_mtime] "Tue Nov 19 13:32:48 2024"
+[dumpfile_size] 3676
+[savefile] "/home/dayan/Escritorio/Universidad/Estructura/P2_/Ficheros/microc_tb.gtkw"
+[timestart] 0
+[size] 1920 1033
+[pos] -51 -51
+*-13.842192 12920 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] microc_tb.
+[treeopen] microc_tb.mic_1.
+[sst_width] 278
+[signals_width] 193
+[sst_expanded] 1
+[sst_vpaned_height] 308
+@28
+microc_tb.clk
+microc_tb.reset
+@24
+microc_tb.mic_1.salida_pc[9:0]
+@420
+microc_tb.mic_1.regs.WD3[7:0]
+@25
+microc_tb.mic_1.regs.WA3[3:0]
+@22
+microc_tb.mic_1.regs.RA1[3:0]
+microc_tb.mic_1.regs.RA2[3:0]
+@420
+microc_tb.Op[2:0]
+@800028
+microc_tb.Opcode[5:0]
+@28
+(0)microc_tb.Opcode[5:0]
+(1)microc_tb.Opcode[5:0]
+(2)microc_tb.Opcode[5:0]
+(3)microc_tb.Opcode[5:0]
+(4)microc_tb.Opcode[5:0]
+(5)microc_tb.Opcode[5:0]
+@1001208
+-group_end
+@28
+microc_tb.s_inc
+microc_tb.s_inm
+microc_tb.we3
+microc_tb.wez
+microc_tb.z
+[pattern_trace] 1
+[pattern_trace] 0

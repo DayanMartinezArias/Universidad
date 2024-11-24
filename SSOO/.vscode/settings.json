@@ -53,6 +53,12 @@
     "streambuf": "cpp",
     "thread": "cpp",
     "typeinfo": "cpp",
-    "cdrom.h": "c"
+    "cdrom.h": "c",
+    "expected": "cpp",
+    "sstream": "cpp",
+    "format": "cpp",
+    "charconv": "cpp",
+    "span": "cpp",
+    "variant": "cpp"
   }
 }

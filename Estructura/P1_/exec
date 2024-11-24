@@ -1,0 +1,1 @@
+iverilog alu_tb.v ALU.v c1.v compl1.v fa.v multi1b.v multi4b.v preproc.v sum4.v ul4.v

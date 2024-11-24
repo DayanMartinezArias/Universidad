@@ -6,10 +6,9 @@ registro #(10) pc(salida_pc, clk, reset, salida_mux);
 
 // mux
 wire [9:0] salida_mux;
-wire dir_salto;
 mux2 #(10) mux(salida_mux, salida_memoria[9:0], salida_sumador, s_inc);
 
-// sumador + 1
+// sumador + 
 wire [9:0] salida_sumador;
 sum sumador (salida_sumador, 10'b0000000001, salida_pc);
 
@@ -33,5 +32,7 @@ alu alu1(salida_alu, zero, RD_1, RD_2, Op);
 
 // flip flop zero
 ffd zer(clk, reset, zero, wez, z);
+
+assign Opcode = salida_memoria[15:10];
 
 endmodule

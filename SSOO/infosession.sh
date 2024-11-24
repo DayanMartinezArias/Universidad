@@ -253,7 +253,7 @@ session_table() {
   for sid in $sessions; do
     process=$(echo "$ps_tab" | awk -v sid="$sid" '$1 == sid')
 
-    num_groups=$(echo "$process" | awk '{print $2}' | wc -l)
+    num_groups=$(echo "$process" | awk '{print $2}' | sort | uniq | wc -l)
     leader_pid=$(echo "$process" | awk -v sid="$sid" '$1 == sid && $3 == sid {print $3}') 
     total_mem=$(echo "$process" | LC_ALL=C awk '{mem_sum += $6} END {print mem_sum}')
     leader_user=$(echo "$process" | awk -v pid="$leader_pid" '$3 == pid {print $4}') 
@@ -278,7 +278,7 @@ order_by() {
     ordered=$(echo "$1" | sort -V -k 6)
     rev=$(echo "$1" | sort -r -V -k 6)
   elif [ $sg_opt -eq 1 ]; then
-    ordered=$(echo "$1" | sort -k 2)
+    ordered=$(echo "$1" | sort -n  -k 2)
     rev=$(echo "$1" | sort -r -k 2)
   else 
     ordered=$(echo "$1" | sort -k 4)
