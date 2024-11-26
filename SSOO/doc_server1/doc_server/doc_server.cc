@@ -15,11 +15,12 @@
 #include "SafeMap.h"
 #include "socket_file.h"
 
+std::string GetEnv(const std::string& env_var);
+
 enum class parse_args_errors {
   missing_argument,
   unknown_option,
   missing_file_name,
-  invalid_port
 };
 
 struct program_options {
@@ -42,22 +43,11 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
       options.verbose = true;
     } else if (*it == "-p" || *it == "--port") {
         if (++it != end) {
-          for (char c : *it) {
-            if (!std::isdigit(c)) {
-              return std::unexpected(parse_args_errors::invalid_port);
-            }
-          }
           int port = std::stoi(std::string(*it));
           options.port = static_cast<uint16_t>(port);
         } else {
            return std::unexpected(parse_args_errors::missing_argument);
         }
-    } else if (*it == "-o" || *it == "--output") {
-        if (++it != end) {
-            options.output_filename = *it;
-        } else {
-            return std::unexpected(parse_args_errors::missing_argument);
-         }
     } else if (!it->starts_with("-")) {
          options.additional_args.push_back(std::string(*it));
      } else {
@@ -67,22 +57,23 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
  if (options.additional_args.empty()) {
    return std::unexpected(parse_args_errors::missing_file_name);
  }
-
- std::string port_str{getenv("DOCSERVER_PORT")};
+  
+  std::string port_env{"DOCSERVER_PORT"};
+  std::string port_str = GetEnv(port_env);
  
  if (options.port == 0 && !port_str.empty()) {
-  for (char c : port_str) {
-    if (!std::isdigit(c)) {
-      return std::unexpected(parse_args_errors::invalid_port);
-    }
-  }
-  int port = std::stoi(getenv("DOCSERVER_PORT"));
+  int port = std::stoi(port_str);
   options.port = static_cast<uint16_t>(port);
  } else if (options.port == 0 && port_str.empty()) {
   options.port = 8080;
  }
  
 return options;
+}
+
+std::string GetEnv(const std::string& env_var) {
+  const char* env_value = getenv(env_var.c_str());
+  return env_value ? env_value : "";
 }
 
 int send_response(const SafeFD& new_fd, std::string_view header, std::string_view body = {}) {
@@ -94,12 +85,6 @@ int send_response(const SafeFD& new_fd, std::string_view header, std::string_vie
   ssize_t bytes_sent_body = send(new_fd.get(), body.data(), body.size(), 0);
   if (bytes_sent_body < 0) {
    return errno;
-  }
-
-  std::string blank_line = "\n";
-  ssize_t bytes_sent_blank = send(new_fd.get(), blank_line.data(), blank_line.size(), 0);
-  if (bytes_sent_blank < 0) {
-    return errno;
   }
   return EXIT_SUCCESS;
 }
@@ -119,35 +104,25 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
   // La función lseek() sirve para mover el puntero de lectura/escritura de un archivo y retorna la posición
   // a la que se ha movido. Por tanto, si se mueve al final del archivo, se obtiene el tamaño de este.
   off_t sz{lseek( fd.get(), 0, SEEK_END )};
-  size_t length{static_cast<size_t>(sz)};
+  size_t sz_t{static_cast<size_t>(sz)};
 
-  if (length == 0) {
+  if (sz_t == 0) {
     return SafeMap{std::string_view{}, 0};
   }
 
   // Se mapea el archivo completo en memoria para solo lectura y de forma privada.
-  void* mem{mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd.get(), 0)};
+  void* mem{mmap(NULL, sz_t, PROT_READ, MAP_PRIVATE, fd.get(), 0)};
   if (mem == MAP_FAILED) {
     return std::unexpected(errno);
   }
 
   if (verbose) {
-    std::cout << "read: " << length << " bytes read from file" << std::endl;
+    std::cout << "read: " << sz_t << " bytes read from file" << std::endl;
   }
 
   // Ahora se puede acceder a los datos del archivo como si estuvieran en la memoria.
   // Por ejemplo, imprimir os primeros 10 caracteres por la consola.
-   return SafeMap{std::string_view(static_cast<char*>(mem), length), length}; // Retornar vista del archivo
-}
-
-std::string getenv(const std::string& name) {
-  char* value = getenv(name.c_str());
-  if (value) {
-    return std::string(value);
-  }
-  else {
-    return std::string();
-  }
+   return SafeMap{std::string_view(static_cast<char*>(mem), sz_t), sz_t}; // Retornar vista del archivo
 }
 
 void help() {
@@ -167,9 +142,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "Unknown option" << std::endl;
   } else if (options.error() == parse_args_errors::missing_file_name) {
     std::cerr << "Missing file name" << std::endl;
-  } else if (options.error() == parse_args_errors::invalid_port) {
-    std::cerr << "Invalid port selection" << std::endl;
-  }
+  } 
   return EXIT_FAILURE; 
   }
   // Usar options.value() para acceder a las opciones...
@@ -196,14 +169,15 @@ int main(int argc, char* argv[]) {
     std::cout << "Listening for incoming connections on port " << options.value().port << "..." << std::endl;
   }
 
-    // Accept connections in a loop
+  // Accept connections in a loop
   sockaddr_in client_addr{};
   while (true) {
-    auto connection = accept_connection(sock.value(), client_addr, options.value().verbose);
-    if (!connection.has_value()) {
+    auto connection_accept = accept_connection(sock.value(), client_addr, options.value().verbose);
+    if (!connection_accept.has_value()) {
       std::cerr << "Error accepting connection: " << std::endl;
       return EXIT_FAILURE;
     }
+    
     std::string header;
 
     std::string file_name(options.value().additional_args[0]);
@@ -211,11 +185,19 @@ int main(int argc, char* argv[]) {
     if (!content.has_value()) {
     if (content.error() == 13) {
       header = "403 FORBIDDEN";
+      if (options.value().verbose) {
+        std::cout << "send: sending response" << std::endl;
+        std::cout << "-----------------------------" << std::endl;
+      }
     }
     else if (content.error() == 2) {
+      if (options.value().verbose) {
+        std::cout << "send: sending response" << std::endl;
+        std::cout << "-----------------------------" << std::endl;
+      }
       header = "404 NOT FOUND";
-    }
-    if(send_response(connection.value(), header) ==  ECONNRESET) {
+    }  
+    if(send_response(connection_accept.value(), header) ==  ECONNRESET) {
       std::cerr << "Could not send a response" << std::endl;
       continue;
     }
@@ -223,10 +205,10 @@ int main(int argc, char* argv[]) {
   size_t sz{content.value().get().size()};
   header = std::format("Content-Length: {}\n", sz);
   if (options.value().verbose) {
-    std::cout << "send: file content to be send" << std::endl;
+    std::cout << "send: sending response" << std::endl;
     std::cout << "-----------------------------" << std::endl;
   }
-  if(send_response(connection.value(), header, content.value().get()) ==  ECONNRESET) {
+  if(send_response(connection_accept.value(), header, content.value().get()) ==  ECONNRESET) {
     std::cerr << "Could not send a response" << std::endl;
     continue;
   }
@@ -234,5 +216,3 @@ int main(int argc, char* argv[]) {
 
   return EXIT_SUCCESS;
 }
-
-// errores leves salida etándar 

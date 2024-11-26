@@ -29,7 +29,7 @@ std::expected<SafeFD, int> make_socket(uint16_t port) {
   local_address.sin_port = htons(port);                   // <4>
 
   int result = bind(
-    sock_fd.get(),                                            // <5>
+    sock_fd.get(),                                      // <5>
     reinterpret_cast<const sockaddr*>(&local_address),  // <6>
 	  sizeof(local_address)                               // <7>
   );
@@ -41,7 +41,6 @@ std::expected<SafeFD, int> make_socket(uint16_t port) {
 }
 
 int listen_connection(const SafeFD& sock_fd) {
-
   if (listen(sock_fd.get(), 5) < 0) {
     return errno;
   }
@@ -59,9 +58,7 @@ std::expected<SafeFD, int> accept_connection(const SafeFD& sock_fd, sockaddr_in&
   }
 
   if (verbose) {
-    char buffer[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &(client_addr.sin_addr), buffer, INET_ADDRSTRLEN);
-    std::cout << "connecting to IP: " << buffer << ", on port: " << ntohs(client_addr.sin_port) << std::endl;
+    std::cout << "connecting to a client: " << std::endl;
   }
   return new_fd;
 }
