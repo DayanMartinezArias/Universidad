@@ -94,6 +94,7 @@ int send_response(const SafeFD& new_fd, std::string_view header, std::string_vie
   if (bytes_sent_body < 0) {
    return errno;
   }
+
   return EXIT_SUCCESS;
 }
 
