@@ -10,6 +10,8 @@
 #include <sys/mman.h> 
 #include <format>
 #include <sstream>
+#include <charconv>
+#include <cstring>
 
 #include "SafeFd.h"
 #include "SafeMap.h"
@@ -27,7 +29,6 @@ struct program_options {
   bool show_help = false;
   bool verbose = false;
   uint16_t port;
-  std::string output_filename;
   
   std::vector<std::string> additional_args; 
 };
@@ -43,8 +44,13 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
       options.verbose = true;
     } else if (*it == "-p" || *it == "--port") {
         if (++it != end) {
-          int port = std::stoi(std::string(*it));
-          options.port = static_cast<uint16_t>(port);
+          int port;
+          auto [ptr, ec] = std::from_chars(it->data(), it->data() + it->size(), port);
+          if (ec == std::errc()) {
+            options.port = static_cast<uint16_t>(port);
+          } else {
+            return std::unexpected(parse_args_errors::missing_argument);
+          }
         } else {
            return std::unexpected(parse_args_errors::missing_argument);
         }
@@ -60,15 +66,17 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
   
   std::string port_env{"DOCSERVER_PORT"};
   std::string port_str = GetEnv(port_env);
- 
+
  if (options.port == 0 && !port_str.empty()) {
-  int port = std::stoi(port_str);
-  options.port = static_cast<uint16_t>(port);
- } else if (options.port == 0 && port_str.empty()) {
-  options.port = 8080;
- }
- 
-return options;
+   int port;
+    auto [ptr, ec] = std::from_chars(port_str.data(), port_str.data() + port_str.size(), port);
+    if (ec == std::errc()) {
+      options.port = static_cast<uint16_t>(port);
+    }
+  } else if (options.port == 0 && port_str.empty()) {
+    options.port = 8080;
+  }
+  return options;
 }
 
 std::string GetEnv(const std::string& env_var) {
@@ -169,7 +177,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Listening for incoming connections on port " << options.value().port << "..." << std::endl;
   }
 
-  // Accept connections in a loop
   sockaddr_in client_addr{};
   while (true) {
     auto connection_accept = accept_connection(sock.value(), client_addr, options.value().verbose);

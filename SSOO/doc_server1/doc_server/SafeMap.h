@@ -17,7 +17,9 @@ class SafeMap {
   }
   SafeMap& operator=(SafeMap&& other) noexcept {
     if (this != &other) {
-      unmp();
+      if (is_valid()) {
+        munmap(const_cast<char*>(sv_.data()), sz_);
+      }
       sv_ = other.sv_;
       sz_ = other.sz_;
       other.sv_ = {};
@@ -27,7 +29,9 @@ class SafeMap {
   }
 
   ~SafeMap() {
-    unmp();
+    if (is_valid()) {
+      munmap(const_cast<char*>(sv_.data()), sz_);
+    }
   }
 
   [[nodiscard]] bool is_valid() const noexcept {
@@ -41,12 +45,6 @@ class SafeMap {
  private:
   std::string_view sv_;
   size_t sz_;
-
-  void unmp() {
-    if (is_valid()) {
-      munmap(const_cast<char*>(sv_.data()), sz_);
-    }
-  }
 };
 
 #endif
