@@ -349,7 +349,6 @@ int main(int argc, char* argv[]) {
         EXIT_FAILURE;
       }
     }
-
     auto relative_path = Process(receive.value());
     if (!relative_path.has_value()) {
       std::cerr << "ERROR sent: 400 BAD request" << std::endl;
@@ -391,7 +390,6 @@ int main(int argc, char* argv[]) {
         continue;
       }
     }
-
     auto content = ReadAll(absol_path, options.value().verbose);
     if (!content.has_value()) {
       if (content.error() == 13) {
