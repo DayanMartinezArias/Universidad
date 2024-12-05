@@ -12,18 +12,17 @@
 #include <sstream>
 
 #include "SafeFd.h"
-#include "SafeMap.h"
 
 enum class parse_args_errors {
-  missing_argument,
-  unknown_option,
-  missing_file_name
+missing_argument,
+unknown_option,
+missing_file_name
 };
 
 struct program_options {
   bool show_help = false;
-  bool verbose = false;
   std::string output_filename;
+  bool size_check = false;
   std::vector<std::string> additional_args; 
 };
 
@@ -33,15 +32,9 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
 
   for (auto it = args.begin(), end = args.end(); it != end; ++it) {
     if (*it == "-h" || *it == "--help") {
-      options.show_help = true;
-    } else if (*it == "-v" || *it == "--verbose") {
-      options.verbose = true;
-    } else if (*it == "-o" || *it == "--output") {
-        if (++it != end) {
-            options.output_filename = *it;
-        } else {
-             return std::unexpected(parse_args_errors::missing_argument);
-         }
+        options.show_help = true;
+    } else if (*it == "-x") {
+       options.size_check = true;
     } else if (!it->starts_with("-")) {
          options.additional_args.push_back(std::string(*it));
      } else {
@@ -59,12 +52,8 @@ void send_response(std::string_view header, std::string_view body = {}) {
   std::cout << body << std::endl;
 }
 
-std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
+std::expected<std::string_view, int> ReadAll(const std::string& path, bool show_help) {
   // Primero se abre el archivo, con los permisos adecuados según si solo se leerá o también se escribirá.
-  if (verbose) {
-    std::cout << "open: file" << path << std::endl;
-  }
-
   SafeFD fd{open(path.c_str(), O_RDONLY)};
   if (!fd.is_valid()) {
     return std::unexpected(errno);
@@ -75,9 +64,11 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
   // a la que se ha movido. Por tanto, si se mueve al final del archivo, se obtiene el tamaño de este.
   off_t sz{lseek( fd.get(), 0, SEEK_END )};
   size_t length{static_cast<size_t>(sz)};
-
-  if (length == 0) {
-    return SafeMap{std::string_view{}, 0};
+  
+  if (show_help) {
+    if (length > 1024) {
+      return std::unexpected(666);
+    }
   }
 
   // Se mapea el archivo completo en memoria para solo lectura y de forma privada.
@@ -86,13 +77,9 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
     return std::unexpected(errno);
   }
 
-  if (verbose) {
-    std::cout << "read: " << length << " bytes read from file" << std::endl;
-  }
-
   // Ahora se puede acceder a los datos del archivo como si estuvieran en la memoria.
-  // Por ejemplo, imprimir os primeros 10 caracteres por la consola.
-   return SafeMap{std::string_view(static_cast<char*>(mem), length), length}; // Retornar vista del archivo
+  // Por ejemplo, imprimir los primeros 10 caracteres por la consola.
+  return std::string_view(static_cast<char*>(mem), length); // Retornar vista del archivo
 }
 
 
@@ -123,33 +110,26 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if (options.value().verbose) {
-    std::cout << "verbose: option selected" << std::endl;
-  }
-
   std::string header;
 
   std::string file_name(options.value().additional_args[0]);
-  auto content = ReadAll(file_name, options.value().verbose);
+  auto content = ReadAll(file_name, options.value().size_check);
   if (!content.has_value()) {
     if (content.error() == 13) {
       header = "403 FORBIDDEN";
     }
     else if (content.error() == 2) {
       header = "404 NOT FOUND";
+    } else if (content.error() == 666) {
+      std::cerr << "INVALID SIZE" << std::endl;
+      return EXIT_FAILURE;
     }
-    send_response(header);
+    send_response(header, "");
     return EXIT_SUCCESS;
   }
-  size_t sz{content.value().get().size()};
+  size_t sz{content.value().size()};
   header = std::format("Content-Length: {}\n", sz);
-  if (options.value().verbose) {
-    std::cout << "send: file content to be send" << std::endl;
-    std::cout << "-----------------------------" << std::endl;
-  }
-  send_response(header, content.value().get());
+  send_response(header, content.value());
 
   return EXIT_SUCCESS;
 }
-
-// errores leves salida etándar 

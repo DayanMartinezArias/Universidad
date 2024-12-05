@@ -18,7 +18,6 @@
 #include "socket_file.h"
 
 std::string GetEnv(const std::string& env_var);
-std::string getcwd();
 
 enum class parse_args_errors {
   missing_argument,
@@ -30,7 +29,6 @@ struct program_options {
   bool show_help = false;
   bool verbose = false;
   uint16_t port;
-  std::string directory = GetEnv("DOCSERVER_BASEDIR");
   
   std::vector<std::string> additional_args; 
 };
@@ -56,22 +54,15 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
         } else {
            return std::unexpected(parse_args_errors::missing_argument);
         }
-    } else if (*it == "-b" || *it == "--base") {
-       if (++it != end) {
-         options.directory = *it;
-       } else {
-        return std::unexpected(parse_args_errors::missing_argument);
-       }
     } else if (!it->starts_with("-")) {
          options.additional_args.push_back(std::string(*it));
      } else {
         return std::unexpected(parse_args_errors::unknown_option);
      }
  }
-
-  if (options.directory.empty()) {
-    options.directory = getcwd();
-  }
+ if (options.additional_args.empty()) {
+   return std::unexpected(parse_args_errors::missing_file_name);
+ }
   
   std::string port_env{"DOCSERVER_PORT"};
   std::string port_str = GetEnv(port_env);
@@ -88,50 +79,10 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
   return options;
 }
 
-std::expected<std::string, int> receive_request(const SafeFD& socket, size_t max_size) {
-  std::string buffer(4096, '0');
-  std::cout << "Receiving data from user" << std::endl;
-  ssize_t rec = recv(socket.get(), buffer.data(), max_size, 0);
-  if (rec < 0) {
-    return std::unexpected(errno);
-  }
-  size_t new_sz = static_cast<size_t>(rec);
-  buffer.resize(new_sz);
-  return buffer;
-}
-
-std::expected<std::string, std::string> Process(const std::string& request) {
-  if (request.empty()) {
-    return std::unexpected(request);   
-  }
-  std::string get_req, path;
-  std::istringstream iss(request);
-  size_t end_of_line = request.find("\r\n");
-  if (end_of_line == std::string::npos) {
-    return std::unexpected("PROCESS KILLED");
-  }
-  std::string fl{request.substr(0, end_of_line)};
-  iss >> get_req >> path;
-  if (get_req != "GET") {
-    return std::unexpected(request);
-  }
-
-  if (path.empty()) {
-    return std::unexpected(request); 
-  }
-
-  return path;
-}
-
 std::string GetEnv(const std::string& env_var) {
   const char* env_value = getenv(env_var.c_str());
   return env_value ? env_value : "";
 }
-
- std::string getcwd() {
-   char buff[255];
-   return std::string(getcwd(buff, 255));
- }
 
 int send_response(const SafeFD& new_fd, std::string_view header, std::string_view body = {}) {
   ssize_t bytes_sent_header = send(new_fd.get(), header.data(), header.size(), 0);
@@ -144,19 +95,13 @@ int send_response(const SafeFD& new_fd, std::string_view header, std::string_vie
    return errno;
   }
 
-  std::string line_break{"\n"};
-  ssize_t bytes_sent_ln = send(new_fd.get(), line_break.data(), line_break.size(), 0);
-  if (bytes_sent_ln < 0) {
-   return errno;
-  }
-
   return EXIT_SUCCESS;
 }
 
 std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
   // Primero se abre el archivo, con los permisos adecuados según si solo se leerá o también se escribirá.
   if (verbose) {
-    std::cout << "open: file " << path << std::endl;
+    std::cout << "open: file" << path << std::endl;
   }
 
   SafeFD fd{open(path.c_str(), O_RDONLY)};
@@ -183,6 +128,7 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
   if (verbose) {
     std::cout << "read: " << sz_t << " bytes read from file" << std::endl;
   }
+
   // Ahora se puede acceder a los datos del archivo como si estuvieran en la memoria.
   // Por ejemplo, imprimir os primeros 10 caracteres por la consola.
    return SafeMap{std::string_view(static_cast<char*>(mem), sz_t), sz_t}; // Retornar vista del archivo
@@ -193,7 +139,6 @@ void help() {
   std::cout << "-h, --help: Show a help message on how to use the program" << std::endl;
   std::cout << "-v, --verbose: Shows informative messages through the terminal" << std::endl;
   std::cout << "-p, --port: Selects the port in wich the socket will be listening on" << std::endl;
-  std::cout << "-b, --base: Selects a base directory from wich clients can request" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -233,8 +178,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Listening for incoming connections on port " << options.value().port << "..." << std::endl;
   }
 
-  std::string header;
-
   sockaddr_in client_addr{};
   while (true) {
     auto connection_accept = accept_connection(sock.value(), client_addr, options.value().verbose);
@@ -242,78 +185,42 @@ int main(int argc, char* argv[]) {
       std::cerr << "Error accepting connection: " << std::endl;
       return EXIT_FAILURE;
     }
+    
+    std::string header;
 
-    // Recivir la petición
-    auto receive = receive_request(connection_accept.value(), 4096);
-    if (!receive.has_value()) {
-      if (receive.error() == ECONNRESET) {
-        std::cerr << "Error receiving request: " << std::endl;
-        continue;
-      } else {
-        std::cerr << "Unknown error receiving request" << std::endl;
-        EXIT_FAILURE;
-      }
-    }
-
-    auto relative_path = Process(receive.value());
-    if (!relative_path.has_value()) {
-      std::cerr << "ERROR sent: 400 BAD request" << std::endl;
-      std::cerr << "User requested: " << relative_path.error() << std::endl;
-      header = "400 BAD REQUEST";
+    std::string file_name(options.value().additional_args[0]);
+    auto content = ReadAll(file_name, options.value().verbose);
+    if (!content.has_value()) {
+    if (content.error() == 13) {
+      header = "403 FORBIDDEN";
       if (options.value().verbose) {
         std::cout << "send: sending response" << std::endl;
         std::cout << "-----------------------------" << std::endl;
       }
-      if(send_response(connection_accept.value(), header) ==  ECONNRESET) {
-        std::cerr << "Could not send a response" << std::endl;
-        continue;
-      }   
-      continue;
     }
-    
-    std::string base = options.value().directory;
-    std::string absol_path = base + relative_path.value();
-    std::string sub{"//"};
-    while (absol_path.find(sub) != std::string::npos) {
-      absol_path.replace(absol_path.find(sub), 2, "/");
-    }
-
-    if (options.value().verbose) {
-      std::cout << "Client requested file " << absol_path << std::endl;
-    }
-
-    auto content = ReadAll(absol_path, options.value().verbose);
-    if (!content.has_value()) {
-      if (content.error() == 13) {
-        header = "403 FORBIDDEN";
-        if (options.value().verbose) {
-          std::cout << "send: sending response" << std::endl;
-          std::cout << "-----------------------------" << std::endl;
-        }
+    else if (content.error() == 2) {
+      if (options.value().verbose) {
+        std::cout << "send: sending response" << std::endl;
+        std::cout << "-----------------------------" << std::endl;
       }
-      else if (content.error() == 2) {
-        if (options.value().verbose) {
-          std::cout << "send: sending response" << std::endl;
-          std::cout << "-----------------------------" << std::endl;
-        }
-        header = "404 NOT FOUND";
-      }  
-      if(send_response(connection_accept.value(), header) ==  ECONNRESET) {
-        std::cerr << "Could not send a response" << std::endl;
-        continue;
-      }
-      continue;
-    }
-    size_t sz{content.value().get().size()};
-    header = std::format("Content-Length: {}\n", sz);
-    if (options.value().verbose) {
-      std::cout << "send: sending response" << std::endl;
-      std::cout << "-----------------------------" << std::endl;
-    }
-    if(send_response(connection_accept.value(), header, content.value().get()) ==  ECONNRESET) {
+      header = "404 NOT FOUND";
+    }  
+    if(send_response(connection_accept.value(), header) ==  ECONNRESET) {
       std::cerr << "Could not send a response" << std::endl;
       continue;
     }
   }
+  size_t sz{content.value().get().size()};
+  header = std::format("Content-Length: {}\n", sz);
+  if (options.value().verbose) {
+    std::cout << "send: sending response" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+  }
+  if(send_response(connection_accept.value(), header, content.value().get()) ==  ECONNRESET) {
+    std::cerr << "Could not send a response" << std::endl;
+    continue;
+  }
+}
+
   return EXIT_SUCCESS;
 }

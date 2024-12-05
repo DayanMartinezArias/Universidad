@@ -1,6 +1,3 @@
-#ifndef SAFEFD_H
-#define SAFEFD_H
-
 #include <unistd.h>
 
 class SafeFD {
@@ -42,5 +39,3 @@ class SafeFD {
  private:
   int fd_;
 };
-
-#endif

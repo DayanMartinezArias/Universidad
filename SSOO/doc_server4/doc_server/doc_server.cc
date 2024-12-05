@@ -5,17 +5,22 @@
 #include <string>
 #include <vector>
 #include <expected>
-#include <fcntl.h>   
-#include <unistd.h>  
+#include <fcntl.h>     
 #include <sys/mman.h> 
 #include <format>
 #include <sstream>
 #include <charconv>
 #include <cstring>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <array>
+#include <filesystem>
 
 #include "SafeFd.h"
 #include "SafeMap.h"
 #include "socket_file.h"
+
+constexpr size_t tam_buffer{50000};
 
 std::string GetEnv(const std::string& env_var);
 std::string getcwd();
@@ -188,6 +193,96 @@ std::expected<SafeMap, int> ReadAll(const std::string& path, bool verbose) {
    return SafeMap{std::string_view(static_cast<char*>(mem), sz_t), sz_t}; // Retornar vista del archivo
 }
 
+struct execute_program_error {
+  int exit_code;
+  int error_code;
+};
+
+struct exec_environment {
+  std::string REQUEST_PATH; // ruta
+  std::string SERVER_BASEDIR; // directorio base
+  std::string REMOTE_PORT; // puerto remoto
+  std::string REMOTE_IP;  // ip remota
+};
+
+std::expected<std::string, execute_program_error>
+execute_program(const std::string& path, const exec_environment& env) {
+  exec_environment aux = env; //
+  execute_program_error error;
+  int pipefd[2];
+  int result = pipe(pipefd);
+  if (result < 0) {
+    error.error_code = errno;
+    return std::unexpected(error);
+  }
+
+  SafeFD rd(pipefd[0]);
+  SafeFD wr(pipefd[1]);
+ 
+  pid_t pid = fork();
+  if (pid == 0) {
+    // Proceso hijo porque pid == 0
+    rd = SafeFD(); // ciero la lectura
+    // En el prog
+    // redirección salida estandar al extremo de escritura con dup2
+    int dup2_res = dup2(wr.get(), 1);
+    if (dup2_res < 0) {
+      wr = SafeFD();
+      error.error_code = errno;
+      error.exit_code = 1;
+      return std::unexpected(error);
+    }
+
+    if (execl(path.c_str(), path.c_str(), (char*)NULL) == 1) {
+      error.error_code = errno;
+      error.exit_code = 1;
+      return std::unexpected(error);
+    }
+  } else if (pid > 0) {
+    int status{};
+    wr = SafeFD();
+    int result_waitpid=waitpid(pid, &status, 0);
+    if (result_waitpid < 0) {
+      error.error_code = errno;
+      rd = SafeFD();
+      return std::unexpected(error);   
+    }
+    if (WIFEXITED(status)) {
+      if (WEXITSTATUS(status) == EXIT_SUCCESS) {
+      // Leer contenido de la tubería
+        std::array <char, tam_buffer> buffer{};
+        bool flag{true};
+        std::string listen{};
+        while(flag) {
+          ssize_t nbytes = read(rd.get(), buffer.data(), tam_buffer);
+          if (nbytes < 0) {
+            error.error_code = errno;
+            rd = SafeFD();
+            return std::unexpected(error); 
+          } else {
+            listen.append(buffer.data(), 0, static_cast<size_t>(nbytes));
+            if (static_cast<size_t>(nbytes) < tam_buffer) {
+              flag = false; // terminamos con el buffer
+            }
+          }
+          return listen;
+        }
+      } else {
+         error.exit_code = WEXITSTATUS(status);
+         error.error_code = 0;
+         return std::unexpected(error);  // El hijo terminó con error
+        }
+    } else {
+      error.error_code = errno;
+      return std::unexpected(error);  // Hubo un problema con el estado de salida del hijo
+    }
+  } else {
+    // Error en fork
+    error.error_code = errno;
+    return std::unexpected(error);
+  }
+}
+
 void help() {
   std::cout << "Use: server [options]" << std::endl;
   std::cout << "-h, --help: Show a help message on how to use the program" << std::endl;
@@ -272,6 +367,7 @@ int main(int argc, char* argv[]) {
     }
     
     std::string base = options.value().directory;
+    // si no existe
     std::string absol_path = base + relative_path.value();
     std::string sub{"//"};
     while (absol_path.find(sub) != std::string::npos) {
@@ -280,6 +376,20 @@ int main(int argc, char* argv[]) {
 
     if (options.value().verbose) {
       std::cout << "Client requested file " << absol_path << std::endl;
+    }
+
+    if (absol_path.find("/bin") != std::string::npos) {
+      exec_environment env;
+      auto std_output = execute_program(absol_path, env);
+      if (!std_output.has_value()) {
+        send_response(connection_accept.value(), "500 Internal Server Error\n");
+        continue;
+      } else {
+        size_t sz{std_output.value().size()};
+        header = std::format("Content-Length: {}\n", sz);
+        send_response(connection_accept.value(), header, std_output.value());
+        continue;
+      }
     }
 
     auto content = ReadAll(absol_path, options.value().verbose);
