@@ -55,6 +55,9 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
           auto [ptr, ec] = std::from_chars(it->data(), it->data() + it->size(), port);
           if (ec == std::errc()) {
             options.port = static_cast<uint16_t>(port);
+            if (port < 0 || port > 65535) {
+              return std::unexpected(parse_args_errors::missing_argument);
+            }
           } else {
             return std::unexpected(parse_args_errors::missing_argument);
           }
@@ -86,6 +89,9 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
     auto [ptr, ec] = std::from_chars(port_str.data(), port_str.data() + port_str.size(), port);
     if (ec == std::errc()) {
       options.port = static_cast<uint16_t>(port);
+      if (port < 0 || port > 65535) {
+        return std::unexpected(parse_args_errors::missing_argument);
+      }
     }
   } else if (options.port == 0 && port_str.empty()) {
     options.port = 8080;
@@ -115,6 +121,7 @@ std::expected<std::string, std::string> Process(const std::string& request) {
   if (end_of_line == std::string::npos) {
     return std::unexpected("PROCESS KILLED");
   }
+
   std::string fl{request.substr(0, end_of_line)};
   iss >> get_req >> path;
   if (get_req != "GET") {
@@ -125,6 +132,17 @@ std::expected<std::string, std::string> Process(const std::string& request) {
     return std::unexpected(request); 
   }
 
+  if (path.find("/..") != std::string::npos) {
+    return std::unexpected("ESCAPE");
+  }
+  if (path.back() == '/') {
+    std::cout << "error aqui" << std::endl;
+    return std::unexpected("INCOMPLETE");
+  }
+  if (path.length() >= 4 && path.substr(path.length() - 4, 4) == "/bin") { // For some reason, when you use 'path/bin' without a file or any other directory after bin it gets stuck
+    std::cout << "error aqui2" << std::endl;
+    return std::unexpected("INCOMPLETE");
+  }
   return path;
 }
 
@@ -209,6 +227,16 @@ std::expected<std::string, execute_program_error>
 execute_program(const std::string& path, const exec_environment& env) {
   exec_environment aux = env; //
   execute_program_error error;
+
+  const char *c_path = path.c_str();
+  SafeFD valid(access(c_path, (F_OK && X_OK)));
+  if (valid.get() < 0) {
+    error.error_code = errno = errno;
+    std::cerr << "failed: " << std::strerror(errno) << std::endl;
+    return std::unexpected(error);
+  }
+
+  std::cout << "creating pipe" << std::endl;
   int pipefd[2];
   int result = pipe(pipefd);
   if (result < 0) {
@@ -219,43 +247,51 @@ execute_program(const std::string& path, const exec_environment& env) {
   SafeFD rd(pipefd[0]);
   SafeFD wr(pipefd[1]);
  
+  std::cout << "creating child process" << std::endl;
   pid_t pid = fork();
   if (pid == 0) {
     // Proceso hijo porque pid == 0
     rd = SafeFD(); // ciero la lectura
     // En el prog
     // redirección salida estandar al extremo de escritura con dup2
+    std::cout << "redirecting standar output to write end" << std::endl;
     int dup2_res = dup2(wr.get(), 1);
+    std::cout << "redirecting standar output to write end" << std::endl;
     if (dup2_res < 0) {
       wr = SafeFD();
       error.error_code = errno;
       error.exit_code = 1;
       return std::unexpected(error);
     }
-
-    if (execl(path.c_str(), path.c_str(), (char*)NULL) == 1) {
+    
+    std::cout << "executing program : " << path << std::endl;
+    if (execl(path.c_str(), path.c_str(), (char*)NULL) == -1) {
       error.error_code = errno;
       error.exit_code = 1;
       return std::unexpected(error);
-    }
+    } 
   } else if (pid > 0) {
     int status{};
     wr = SafeFD();
     int result_waitpid=waitpid(pid, &status, 0);
     if (result_waitpid < 0) {
+      std::cerr << "wait for child process failed" << std::strerror(errno) << std::endl;
       error.error_code = errno;
       rd = SafeFD();
       return std::unexpected(error);   
-    }
+    } std::cout << "father is checking for exit status of child process" << std::endl;
     if (WIFEXITED(status)) {
       if (WEXITSTATUS(status) == EXIT_SUCCESS) {
+      std::cout << "child process ended ok" << std::endl;
       // Leer contenido de la tubería
         std::array <char, tam_buffer> buffer{};
         bool flag{true};
         std::string listen{};
         while(flag) {
+          std::cout << "father process is receiving data" << std::endl;
           ssize_t nbytes = read(rd.get(), buffer.data(), tam_buffer);
           if (nbytes < 0) {
+            std::cerr << "pipe reading failed: " << std::strerror(errno) << std::endl;
             error.error_code = errno;
             rd = SafeFD();
             return std::unexpected(error); 
@@ -274,13 +310,16 @@ execute_program(const std::string& path, const exec_environment& env) {
         }
     } else {
       error.error_code = errno;
+      std::cerr << "child process failed: " << std::strerror(errno) << std::endl;
       return std::unexpected(error);  // Hubo un problema con el estado de salida del hijo
     }
   } else {
     // Error en fork
     error.error_code = errno;
+    std::cerr << "child process failed: " << std::strerror(errno) << std::endl;
     return std::unexpected(error);
   }
+  return std::unexpected(error);
 }
 
 void help() {
@@ -325,6 +364,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (options.value().verbose) {
+    std::cout << "Bsse directory selcted: " << options.value().directory << std::endl;
     std::cout << "Listening for incoming connections on port " << options.value().port << "..." << std::endl;
   }
 
@@ -352,7 +392,15 @@ int main(int argc, char* argv[]) {
     auto relative_path = Process(receive.value());
     if (!relative_path.has_value()) {
       std::cerr << "ERROR sent: 400 BAD request" << std::endl;
-      std::cerr << "User requested: " << relative_path.error() << std::endl;
+      if (relative_path.error() == "PROCESS KILLED") {
+        std::cerr << "Process was killed before a request" << std::endl;
+      } else if (relative_path.error() == "ESCAPE") {
+        std::cerr << "User tried to escape from base directory" << std::endl;
+      } else if (relative_path.error() == "INCOMPLETE") {
+        std::cerr << "Incomplete route" << std::endl;
+      } else {
+        std::cerr << "User requested: " << relative_path.error() << std::endl;
+      }
       header = "400 BAD REQUEST";
       if (options.value().verbose) {
         std::cout << "send: sending response" << std::endl;
@@ -378,10 +426,18 @@ int main(int argc, char* argv[]) {
     }
 
     if (absol_path.find("/bin") != std::string::npos) {
-      exec_environment env;
+      exec_environment env = SetEnvir();
       auto std_output = execute_program(absol_path, env);
       if (!std_output.has_value()) {
-        send_response(connection_accept.value(), "500 Internal Server Error\n");
+        if (options.value().verbose) {
+          std::cout << "exited with exist status: " << std_output.error().exit_code << std::endl;
+          std::cout << "exited with error code: " << std_output.error().error_code << std::endl;
+          std::cout << "-----------------------------" << std::endl;
+        }
+        if (send_response(connection_accept.value(), "500 Internal Server Error\n") == ECONNRESET) {
+          std::cerr << "Could not send a response" << std::endl;
+          continue;
+        }
         continue;
       } else {
         size_t sz{std_output.value().size()};
