@@ -98,18 +98,24 @@ bool point_set::write_dot(const std::string& filename) const {
 
   file << "graph {\n";
 
-  // Add nodes with positions
+
   for (int i{0}; i < size(); ++i) {
     file << "    " <<  i << " [pos=\"" << at(i).first << "," << at(i).second << "!\"];\n";
   }
 
-  // Add edges
-  for (int i{0}; i < size(); ++i) {
-    file << "    " << at(i) << " -- " << at << ";\n";
+  for (const CyA::arc& arcs : emst_) {
+    auto it = std::find(begin(), end(), arcs.first);
+    int inx = it - begin();
+    file << "    " << inx << " -- "; 
+    auto it2 = std::find(begin(), end(), arcs.second);
+    int inx2 = it2 - begin();
+    file << inx2 << " " << "\n";
   }
 
-  file << "}\n";
-  file.close();
-  std::cout << "DOT file generated: " << filename << "\n";
+  file << "  " << "}";
+
+  std::cout << "\nDOT file generated\n";
+
+  return true;
 }
 

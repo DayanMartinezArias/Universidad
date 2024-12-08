@@ -69,7 +69,7 @@ int main (int argc, char* argv[]) {
   std::cout << point_set.get_cost() << std::endl; 
   
   if (options.visualize) {
-    if(!write_dot(point_set, "EMSP.dot")) {
+    if(!point_set.write_dot("EMSP.dot")) {
       return 1;
     }
   }

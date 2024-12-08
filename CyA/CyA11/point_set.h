@@ -21,7 +21,7 @@ class point_set : public CyA::point_vector {
   inline const CyA::point_vector& get_points(void) const { return *this; }
   inline const double get_cost(void) const { return compute_cost(); }
 
-  bool point_set::write_dot(const std::string& filename) const;
+  bool write_dot(const std::string& filename) const;
 
   private:
    void compute_arc_vector(CyA::arc_vector &av) const;
