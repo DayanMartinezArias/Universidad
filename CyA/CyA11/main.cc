@@ -1,17 +1,20 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <expected>
 #include "point_set.h"
 #include "points.h"
-
-constexpr int Parmas{1};
 
 struct options {
   bool help = false;
   bool visualize = false;
 };
 
-options ParseArgs(int argc, char* argv[]) {
+enum class error_msg{
+  inavlid_option
+};
+
+std::expected<options, error_msg> ParseArgs(int argc, char* argv[]) {
   std::vector<std::string> args(argv + 1, argv + argc);
   options options;
 
@@ -20,18 +23,11 @@ options ParseArgs(int argc, char* argv[]) {
       options.help = true;
     } else if (*it == "-d") {
       options.visualize = true;
+    } else {
+      return std::unexpected(error_msg::inavlid_option);
     }
   }
   return options;
-}
-
-char Generate()  {
-  static char new_symbol = 'A';
-  new_symbol++; 
-  if (new_symbol > 'Z') {
-    return '1';
-  }
-  return new_symbol;
 }
 
 void help() {
@@ -50,9 +46,15 @@ void help() {
 }
 
 int main (int argc, char* argv[]) {
-  options options{ParseArgs(argc, argv)};
+  auto options{ParseArgs(argc, argv)};
+  if (!options.has_value()) {
+    if(options.error() == error_msg::inavlid_option) {
+      std::cerr << "Unknown option selected\n";
+      return 1;
+    }
+  }
 
-  if (options.help) {
+  if (options.value().help) {
     help();
     return 0;
   } 
@@ -68,7 +70,7 @@ int main (int argc, char* argv[]) {
   std::cout << "Total cost" << std::endl;
   std::cout << point_set.get_cost() << std::endl; 
   
-  if (options.visualize) {
+  if (options.value().visualize) {
     if(!point_set.write_dot("EMSP.dot")) {
       return 1;
     }

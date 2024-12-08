@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <unordered_map>
 #include "point_set.h"
 
 point_set::point_set(const CyA::point_vector &points) : CyA::point_vector(points), emst_() {}
