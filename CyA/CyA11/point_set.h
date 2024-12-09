@@ -2,6 +2,7 @@
 
 #include "points.h"
 #include "tree.h"
+#include <unordered_map>
 
 typedef std::vector<EMST::sub_tree> forest;
 

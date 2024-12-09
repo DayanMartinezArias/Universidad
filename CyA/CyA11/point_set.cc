@@ -4,7 +4,9 @@
 #include <unordered_map>
 #include "point_set.h"
 
-point_set::point_set(const CyA::point_vector &points) : CyA::point_vector(points), emst_() {}
+point_set::point_set(const CyA::point_vector &points) : CyA::point_vector(points), emst_() {
+  EMST();
+}
 
 void point_set::EMST(void) {
   CyA::arc_vector av;
@@ -83,8 +85,12 @@ void point_set::write(std::ostream &os) const {
 void point_set::write_tree(std::ostream &os) const {
   os << "Minimum Tree:" << std::endl;
   for (const CyA::arc& arc : emst_) {
-    os << "from (" << arc.first.first << ", " << arc.first.second << 
-    ") to (" << arc.second.first << ", " << arc.second.second << ")"
+    auto it = std::find(begin(), end(), arc.first);
+    int inx = it - begin();
+    auto it2 = std::find(begin(), end(), arc.second);
+    int inx2 = it2 - begin();
+    os << "from point " << inx << "(" << arc.first.first << ", " << arc.first.second << 
+    ") to point " << inx2 << "(" << arc.second.first << ", " << arc.second.second << ")"
     << " with cost: " << euclidean_distance(arc) << "\n";
   }
 }
