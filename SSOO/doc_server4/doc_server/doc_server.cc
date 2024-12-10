@@ -126,7 +126,7 @@ std::expected<std::string, std::string> Process(const std::string& request) {
   iss >> get_req >> path;
   if (get_req != "GET") {
     return std::unexpected(request);
-  }
+  } 
 
   if (path.empty()) {
     return std::unexpected(request); 
@@ -229,7 +229,7 @@ execute_program(const std::string& path, const exec_environment& env) {
   execute_program_error error;
 
   const char *c_path = path.c_str();
-  SafeFD valid(access(c_path, (F_OK && X_OK)));
+  SafeFD valid(access(c_path, (F_OK | X_OK)));
   if (valid.get() < 0) {
     error.error_code = errno = errno;
     std::cerr << "failed: " << std::strerror(errno) << std::endl;
@@ -258,24 +258,22 @@ execute_program(const std::string& path, const exec_environment& env) {
     int dup2_res = dup2(wr.get(), 1);
     std::cout << "redirecting standar output to write end" << std::endl;
     if (dup2_res < 0) {
+      std::cerr << "dup2 failed: " << std::strerror(errno) << std::endl;
       wr = SafeFD();
-      error.error_code = errno;
-      error.exit_code = 1;
-      return std::unexpected(error);
+      _exit(1);
     }
     
     std::cout << "executing program : " << path << std::endl;
     if (execl(path.c_str(), path.c_str(), (char*)NULL) == -1) {
-      error.error_code = errno;
-      error.exit_code = 1;
-      return std::unexpected(error);
+        std::cerr << "execl failed: " << std::strerror(errno) << std::endl;
+        _exit(1); 
     } 
   } else if (pid > 0) {
     int status{};
     wr = SafeFD();
     int result_waitpid=waitpid(pid, &status, 0);
     if (result_waitpid < 0) {
-      std::cerr << "wait for child process failed" << std::strerror(errno) << std::endl;
+      std::cerr << "wait for child process failed: " << std::strerror(errno) << std::endl;
       error.error_code = errno;
       rd = SafeFD();
       return std::unexpected(error);   
@@ -426,7 +424,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (absol_path.find("/bin") != std::string::npos) {
-      exec_environment env = SetEnvir();
+      exec_environment env;
+      setenv("REQUEST_PATH", relative_path.value().c_str(), 1);
       auto std_output = execute_program(absol_path, env);
       if (!std_output.has_value()) {
         if (options.value().verbose) {
