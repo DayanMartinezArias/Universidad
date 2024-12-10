@@ -225,7 +225,6 @@ struct exec_environment {
 
 std::expected<std::string, execute_program_error>
 execute_program(const std::string& path, const exec_environment& env) {
-  exec_environment aux = env; //
   execute_program_error error;
 
   const char *c_path = path.c_str();
@@ -256,18 +255,34 @@ execute_program(const std::string& path, const exec_environment& env) {
     // redirección salida estandar al extremo de escritura con dup2
     std::cout << "redirecting standar output to write end" << std::endl;
     int dup2_res = dup2(wr.get(), 1);
-    std::cout << "redirecting standar output to write end" << std::endl;
     if (dup2_res < 0) {
       std::cerr << "dup2 failed: " << std::strerror(errno) << std::endl;
       wr = SafeFD();
       _exit(1);
     }
     
-    std::cout << "executing program : " << path << std::endl;
+    setenv("REQUEST_PATH", env.REQUEST_PATH.c_str(), 1);
+    setenv("SERVER_BASEDIR", env.SERVER_BASEDIR.c_str(), 1);
+    setenv("REMOTE_PORT", env.REMOTE_PORT.c_str(), 1);
+    setenv("REMOTE_IP", env.REMOTE_IP.c_str(), 1);
+    
+    std::string ip = "IP adress: " + GetEnv("REMOTE_IP");
+    std::string remote_port = "Remote Port: " + GetEnv("REMOTE_PORT");
+    std::string base_d = "Base dir: " + GetEnv("SERVER_BASEDIR");
+    std::string path_r = "Requested Path" + GetEnv("REQUEST_PATH");
+
+    std::cout << std::endl;
+    std::cout << ip << std::endl;
+    std::cout << remote_port << std::endl;
+    std::cout << base_d << std::endl;
+    std::cout << path_r << std::endl;
+    std::cout << std::endl;
+
     if (execl(path.c_str(), path.c_str(), (char*)NULL) == -1) {
         std::cerr << "execl failed: " << std::strerror(errno) << std::endl;
         _exit(1); 
     } 
+    
   } else if (pid > 0) {
     int status{};
     wr = SafeFD();
@@ -362,7 +377,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (options.value().verbose) {
-    std::cout << "Bsse directory selcted: " << options.value().directory << std::endl;
+    std::cout << "Base directory selcted: " << options.value().directory << std::endl;
     std::cout << "Listening for incoming connections on port " << options.value().port << "..." << std::endl;
   }
 
@@ -375,6 +390,19 @@ int main(int argc, char* argv[]) {
       std::cerr << "Error accepting connection: " << std::endl;
       return EXIT_FAILURE;
     }
+
+  exec_environment inf;
+  sockaddr_in local_addr{};
+  socklen_t addr_len = sizeof(local_addr);
+
+  // Some functionality to get exec_env
+  if (getsockname(sock.value().get(), reinterpret_cast<sockaddr*> (&local_addr), &addr_len) == 0) {
+    inf.REMOTE_IP = inet_ntoa(local_addr.sin_addr);
+    inf.REMOTE_PORT = std::to_string(ntohs(local_addr.sin_port));
+  }
+
+  inf.REMOTE_IP = inet_ntoa(client_addr.sin_addr);
+  inf.REMOTE_PORT = std::to_string((client_addr.sin_port));
 
     // Recivir la petición
     auto receive = receive_request(connection_accept.value(), 4096);
@@ -419,6 +447,9 @@ int main(int argc, char* argv[]) {
       absol_path.replace(absol_path.find(sub), 2, "/");
     }
 
+    inf.SERVER_BASEDIR = options.value().directory;
+    inf.REQUEST_PATH = absol_path;
+
     if (options.value().verbose) {
       std::cout << "Client requested file " << absol_path << std::endl;
     }
@@ -426,9 +457,14 @@ int main(int argc, char* argv[]) {
     if (absol_path.find("/bin") != std::string::npos) {
       exec_environment env;
       setenv("REQUEST_PATH", relative_path.value().c_str(), 1);
-      auto std_output = execute_program(absol_path, env);
+      auto std_output = execute_program(absol_path, inf);
       if (!std_output.has_value()) {
         if (options.value().verbose) {
+          if (std_output.error().error_code == ENOENT) {
+            std::cerr << "Program doesn't exists" << std::endl;
+          } else if (std_output.error().error_code == EACCES) {
+            std::cerr << "Program doesn't have permissions" << std::endl;
+          }
           std::cout << "exited with exist status: " << std_output.error().exit_code << std::endl;
           std::cout << "exited with error code: " << std_output.error().error_code << std::endl;
           std::cout << "-----------------------------" << std::endl;
