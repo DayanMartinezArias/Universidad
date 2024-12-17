@@ -117,9 +117,9 @@ std::expected<std::string, std::string> Process(const std::string& request) {
   }
   std::string get_req, path;
   std::istringstream iss(request);
-  size_t end_of_line = request.find("\r\n");
+  size_t end_of_line = request.find("\n");
   if (end_of_line == std::string::npos) {
-    return std::unexpected("PROCESS KILLED");
+    return std::unexpected("");
   }
 
   std::string fl{request.substr(0, end_of_line)};
@@ -131,17 +131,11 @@ std::expected<std::string, std::string> Process(const std::string& request) {
   if (path.empty()) {
     return std::unexpected(request); 
   }
-
-  if (path.find("/..") != std::string::npos) {
-    return std::unexpected("ESCAPE");
-  }
   if (path.back() == '/') {
-    std::cout << "error aqui" << std::endl;
-    return std::unexpected("INCOMPLETE");
+    return std::unexpected("");
   }
-  if (path.length() >= 4 && path.substr(path.length() - 4, 4) == "/bin") { // For some reason, when you use 'path/bin' without a file or any other directory after bin it gets stuck
-    std::cout << "error aqui2" << std::endl;
-    return std::unexpected("INCOMPLETE");
+  if (path.substr(path.length() - 4, 4) == "/bin") { 
+    return std::unexpected("");
   }
   return path;
 }
@@ -260,25 +254,23 @@ execute_program(const std::string& path, const exec_environment& env) {
       wr = SafeFD();
       _exit(1);
     }
-    
-    setenv("REQUEST_PATH", env.REQUEST_PATH.c_str(), 1);
-    setenv("SERVER_BASEDIR", env.SERVER_BASEDIR.c_str(), 1);
-    setenv("REMOTE_PORT", env.REMOTE_PORT.c_str(), 1);
-    setenv("REMOTE_IP", env.REMOTE_IP.c_str(), 1);
-    
-    std::string ip = "IP adress: " + GetEnv("REMOTE_IP");
-    std::string remote_port = "Remote Port: " + GetEnv("REMOTE_PORT");
-    std::string base_d = "Base dir: " + GetEnv("SERVER_BASEDIR");
-    std::string path_r = "Requested Path" + GetEnv("REQUEST_PATH");
 
-    std::cout << std::endl;
-    std::cout << ip << std::endl;
-    std::cout << remote_port << std::endl;
-    std::cout << base_d << std::endl;
-    std::cout << path_r << std::endl;
-    std::cout << std::endl;
+    std::vector<std::string> env_strings = {
+      "REQUEST_PATH=" + env.REQUEST_PATH,
+      "SERVER_BASEDIR=" + env.SERVER_BASEDIR,
+      "REMOTE_PORT=" + env.REMOTE_PORT,
+      "REMOTE_IP=" + env.REMOTE_IP
+    };
 
-    if (execl(path.c_str(), path.c_str(), (char*)NULL) == -1) {
+    std::vector<char*> envs;
+    for (auto& var : env_strings) {
+      envs.push_back(const_cast<char*>(var.c_str()));
+    }
+    envs.push_back(nullptr); 
+
+    char* args[] = {nullptr};
+
+    if (execve(path.c_str(), args, envs.data()) == -1) {
         std::cerr << "execl failed: " << std::strerror(errno) << std::endl;
         _exit(1); 
     } 
@@ -418,15 +410,9 @@ int main(int argc, char* argv[]) {
     auto relative_path = Process(receive.value());
     if (!relative_path.has_value()) {
       std::cerr << "ERROR sent: 400 BAD request" << std::endl;
-      if (relative_path.error() == "PROCESS KILLED") {
-        std::cerr << "Process was killed before a request" << std::endl;
-      } else if (relative_path.error() == "ESCAPE") {
-        std::cerr << "User tried to escape from base directory" << std::endl;
-      } else if (relative_path.error() == "INCOMPLETE") {
-        std::cerr << "Incomplete route" << std::endl;
-      } else {
-        std::cerr << "User requested: " << relative_path.error() << std::endl;
-      }
+      if (relative_path.error() == "") {
+        std::cerr << "There was an error processing the path" << std::endl;
+      } 
       header = "400 BAD REQUEST";
       if (options.value().verbose) {
         std::cout << "send: sending response" << std::endl;
