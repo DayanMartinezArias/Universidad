@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <array>
-#include <filesystem>
 
 #include "SafeFd.h"
 #include "SafeMap.h"
@@ -55,9 +54,6 @@ std::expected<program_options, parse_args_errors> ParseArgs(int argc, char* argv
           auto [ptr, ec] = std::from_chars(it->data(), it->data() + it->size(), port);
           if (ec == std::errc()) {
             options.port = static_cast<uint16_t>(port);
-            if (port < 0 || port > 65535) {
-              return std::unexpected(parse_args_errors::missing_argument);
-            }
           } else {
             return std::unexpected(parse_args_errors::missing_argument);
           }
@@ -428,9 +424,8 @@ int main(int argc, char* argv[]) {
     std::string base = options.value().directory;
     // si no existe
     std::string absol_path = base + relative_path.value();
-    std::string sub{"//"};
-    while (absol_path.find(sub) != std::string::npos) {
-      absol_path.replace(absol_path.find(sub), 2, "/");
+    while (absol_path.find("//") != std::string::npos) {
+      absol_path.replace(absol_path.find("//"), 2, "/");
     }
 
     inf.SERVER_BASEDIR = options.value().directory;
