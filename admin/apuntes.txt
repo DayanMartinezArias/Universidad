@@ -1,0 +1,7 @@
+Ejercicio 9:
+
+root rrhh rrhh/
+
+permisos:
+rwx rwx ---
+
