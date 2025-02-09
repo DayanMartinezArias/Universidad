@@ -152,10 +152,10 @@ BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
   int right_index = obj.digits_.size() - 1;
 
   while (left_index >= 0 || right_index >= 0) {
-    unsigned left_digit = (left_index >= 0) ? digits_[left_index] - '0': 0;
-    unsigned right_digit = (right_index >= 0) ? obj.digits_[right_index] -'0': 0;
+    unsigned left_digit = digits_[left_index] - '0';
+    unsigned right_digit = (right_index >= 0) ? obj.digits_[right_index] - '0': 0;
 
-    if ((left_digit - carry) < right_digit) {
+    if (left_digit < right_digit + carry) {
       left_digit += 10;
       sub = left_digit - right_digit - carry;
       carry = 1;
@@ -163,11 +163,16 @@ BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
       sub = left_digit - right_digit - carry;
       carry = 0;
     }
-
     vec.emplace_back(sub);
 
     --left_index;
     --right_index;
+  } 
+  if (carry == 1) throw std::invalid_argument("Left side of the operation cannot be greater than right side");
+
+  for (size_t i{vec.size() -1}; i >= 1; --i) {
+    if (vec[i] == 0) vec.pop_back();
+    else break;
   }
 
   std::reverse(vec.begin(), vec.end()); 
