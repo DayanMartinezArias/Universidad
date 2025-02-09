@@ -183,3 +183,44 @@ BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
   }
   return result;
 }
+
+BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
+  BigUnsigned acc;
+  std::vector<unsigned> aux_vec;
+  unsigned carry = 0;
+
+  for (int i = obj.digits_.size() - 1; i >= 0; --i) {
+    unsigned right_digit = obj.digits_[i];
+    aux_vec.clear();
+    
+  
+    for (int k = 0; k < obj.digits_.size() - 1 - i; ++k) {
+      aux_vec.push_back(0);
+    }
+
+    carry = 0;
+    for (int j = digits_.size() - 1; j >= 0; --j) {
+      unsigned left_digit = digits_[j];
+      unsigned mult = (left_digit * right_digit) + carry;
+      carry = mult / 10;
+      aux_vec.push_back(mult % 10);
+    }
+
+    if (carry > 0) {
+      aux_vec.push_back(carry);
+    }
+
+    std::reverse(aux_vec.begin(), aux_vec.end());
+
+    // Convert aux_vec to BigUnsigned
+    BigUnsigned aux;
+    for (const unsigned& digit : aux_vec) {
+      aux.digits_.emplace_back(digit + '0');
+    }
+
+    // Accumulate the result
+    acc = acc + aux;
+  }
+
+  return acc;
+}
