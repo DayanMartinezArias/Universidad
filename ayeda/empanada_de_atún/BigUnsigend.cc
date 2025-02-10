@@ -186,6 +186,7 @@ BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
 
 BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
   BigUnsigned acc;
+  BigUnsigned aux;
 
   std::vector<unsigned> aux_vec;
   unsigned carry = 0;
@@ -193,12 +194,13 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
   // Go through each element of obj in reverse
   // works fine
   for (int i{obj.digits_.size() -1}; i >= 0; --i) {
+    aux_vec.clear();
     unsigned bottom = obj.digits_[i] - '0';
 
     //Adds zeros at the end of a vector
     // works fine
     for (int k{0}; k < obj.digits_.size() -1 -i; ++k ) {
-      
+      aux_vec.push_back(0);
     }
     // Go through each element of this in reverse
     // wroks fine
@@ -209,7 +211,14 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
       carry = sum / 10;
       aux_vec.push_back(sum);
     }
+    
+    aux.digits_.clear();
+    for (const unsigned digit : aux_vec) {
+      aux.digits_.push_back(digit + '0');
+    }
+    std::reverse(aux.digits_.begin(), aux.digits_.end());
+    
+    acc = acc + aux;
   }
-
   return acc;
 }
