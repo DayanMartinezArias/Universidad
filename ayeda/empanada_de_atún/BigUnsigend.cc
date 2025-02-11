@@ -87,23 +87,28 @@ bool BigUnsigned::operator==(const BigUnsigned& obj) const {
 }
 
 bool operator<(const BigUnsigned& left, const BigUnsigned& right) {
-  if (left.digits_.size() < right.digits_.size()) {
+  if ((left >= right)) return false;
+  else return true;
+}
+
+bool BigUnsigned::operator>=(const BigUnsigned& other) const {
+  if (digits_.size() > other.digits_.size()) {
     return true;
-  } else if (left.digits_.size() == right.digits_.size()) {
-    for (size_t i{0}; i < left.digits_.size(); ++i) {
-      if (left.digits_[i] > right.digits_[i]) {
-        return false;
-      }
-    }
-    if (left == right) {
-      return false;
-    } else {
-      return true;
-    }
-  } else {
+  } else if (digits_.size() < other.digits_.size()) {
     return false;
   }
+
+  for (size_t i = 0; i < digits_.size(); ++i) {
+    if (digits_[i] > other.digits_[i]) {
+      return true;
+    } else if (digits_[i] < other.digits_[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
+
 
 // modulo lo que pones
 // resultado el nuevo acarreo
@@ -225,3 +230,79 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
   }
   return acc;
 }
+
+BigUnsigned operator/(const BigUnsigned& left, const BigUnsigned& right) {
+  if (right == BigUnsigned()) {
+    throw std::invalid_argument("cannot divide by zero");
+  } else if (left < right) {
+    return BigUnsigned();
+  } else if (left == right) {
+    return BigUnsigned(1);
+  }
+
+  BigUnsigned quotient;
+  BigUnsigned remainder;
+
+  for (size_t i = 0; i < left.digits_.size(); ++i) {
+    // Agregar el siguiente dígito al residuo
+    remainder.digits_.push_back(left.digits_[i]);
+
+    // Eliminar ceros a la izquierda en el residuo
+    while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
+      remainder.digits_.erase(remainder.digits_.begin());
+    }
+
+    // Calcular el dígito del cociente para esta posición
+    unsigned count = 0;
+    while ((remainder >= right)) {
+      remainder = remainder - right;
+      ++count;
+    }
+
+    // Agregar el dígito al cociente
+    quotient.digits_.push_back(count + '0');
+  }
+
+  // Eliminar ceros a la izquierda en el cociente
+  while (quotient.digits_.size() > 1 && quotient.digits_[0] == '0') {
+    quotient.digits_.erase(quotient.digits_.begin());
+  }
+
+  return quotient;
+}
+
+BigUnsigned BigUnsigned::operator%(const BigUnsigned& obj) const {
+  if (obj == BigUnsigned()) {
+    throw std::invalid_argument("Cannot divide by zero");
+  } else if (*this < obj) {
+    return *this;  // Si el dividendo es menor que el divisor, el residuo es el dividendo
+  }
+
+  BigUnsigned remainder;
+
+  for (size_t i = 0; i < digits_.size(); ++i) {
+    // Agregar el siguiente dígito al residuo
+    remainder.digits_.push_back(digits_[i]);
+
+    // Eliminar ceros a la izquierda en el residuo
+    while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
+      remainder.digits_.erase(remainder.digits_.begin());
+    }
+
+    // Restar el divisor tantas veces como sea posible
+    while (remainder >= obj) {
+      remainder = remainder - obj;
+    }
+  }
+
+  // Eliminar ceros a la izquierda en el residuo final
+  while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
+    remainder.digits_.erase(remainder.digits_.begin());
+  }
+  return remainder;
+}
+
+
+
+
+

@@ -9,6 +9,6 @@ int main (int argc, char* argv[]) {
   std::cin >> num1;
   std::cin >> num3;
 
-  BigUnsigned sum = num1 * num3;
+  BigUnsigned sum = num1 % num3;
   std::cout << sum << std::endl;
 }

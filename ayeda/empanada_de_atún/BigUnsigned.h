@@ -17,6 +17,8 @@ class BigUnsigned {
 
   bool operator==(const BigUnsigned& obj) const;
   friend bool operator<(const BigUnsigned& left, const BigUnsigned& right);
+  bool operator>=(const BigUnsigned& other) const;
+
 
   BigUnsigned& operator++(); // Pre-incremento
   BigUnsigned operator++(int a); // Post-incremento
