@@ -207,9 +207,12 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
     for (int j{digits_.size() - 1}; j >= 0; --j) {
       unsigned top = digits_[j] - '0';
       unsigned sum = (top * bottom) + carry;
-      sum = sum % 10;
       carry = sum / 10;
+      sum = sum % 10;
       aux_vec.push_back(sum);
+    }
+    if (carry > 0) {
+      aux_vec.push_back(carry);
     }
     
     aux.digits_.clear();
