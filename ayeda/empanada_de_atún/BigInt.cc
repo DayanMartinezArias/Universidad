@@ -32,6 +32,7 @@ std::istream& operator>>(std::istream& is, BigInteger& obj) {
   } else {
     obj.sign_ = true;
   }
+  line.erase(0, line.find_first_not_of('0'));
   std::istringstream input(line);
   input >> obj.value_;
   return is;
@@ -151,3 +152,10 @@ BigInteger BigInteger::operator--(int) {
   --(*this);  // Reutiliza el pre-decremento
   return temp;
 }
+
+BigInteger BigInteger::abs() const {
+  BigInteger result = *this;
+  result.sign_ = true;  // Convertimos a positivo
+  return result;
+}
+

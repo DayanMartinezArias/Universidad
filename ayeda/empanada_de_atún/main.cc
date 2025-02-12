@@ -1,21 +1,25 @@
 #include "BigUnsigned.h"
 #include "BigInt.h"
 
-int main (int argc, char* argv[]) {
+BigInteger gcd(BigInteger a, BigInteger b) {
+  a = a.abs(); 
+  b = b.abs();
 
-/*BigInteger a;
-BigInteger b;
-std::cin >> a;
-std::cin >> b;
-std::cout << a << std::endl;
-std::cout << a * b << std::endl;
-*/
-unsigned char* ab = new unsigned char[9];
-ab[0] = '0';
-ab[1] = '0';
-ab[2] = '9';
-ab[3] = '9';
+  while (!(b == BigInteger(0))) {
+    BigInteger temp = b;
+    b = a % b;
+    a = temp;
+  }
+  return a;
+}
 
-BigUnsigned a(ab);
-std::cout << a << std::endl;
+
+
+int main (int argc, unsigned char* argv[]) {
+  BigInteger a;
+  BigInteger b;
+  std::cin >> a;
+  std::cin >> b;
+  BigInteger c = gcd(a, b);
+  std::cout << "Greatest common divisor is: " << c << std::endl;
 }

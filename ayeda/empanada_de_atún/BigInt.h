@@ -20,6 +20,7 @@ class BigInteger {
   BigInteger operator*(const BigInteger& obj) const;
   friend BigInteger operator/(const BigInteger& left, const BigInteger& right);
   BigInteger operator%(const BigInteger& obj) const;
+  BigInteger abs() const;
 
   BigInteger& operator++(); // Pre-incremento
   BigInteger operator++(int a); // Post-incremento

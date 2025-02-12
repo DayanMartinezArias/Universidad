@@ -33,6 +33,10 @@ BigUnsigned::BigUnsigned(unsigned number) {
 
 // Constructor that accepts an array of chars
 BigUnsigned::BigUnsigned(const unsigned char* digits) {
+  while (*digits == '0') {
+    digits++;
+  }
+
   while (*digits != '\0') {
     IsDigit(*digits);
     digits_.emplace_back(*digits);
@@ -66,6 +70,13 @@ std::istream& operator>>(std::istream& is, BigUnsigned& obj) {
   obj.digits_.clear();
   std::string number_line;
   is >> number_line;
+
+  number_line.erase(0, number_line.find_first_not_of('0'));
+
+  if (number_line.empty()) {
+    number_line = "0";
+  }
+  
   for (const char& digit : number_line) {
     IsDigit(static_cast<unsigned char>(digit));
     obj.digits_.emplace_back(static_cast<unsigned char>(digit));
