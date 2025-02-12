@@ -13,6 +13,7 @@ void IsDigit(unsigned char digit) {
   }
 }
 
+
 std::vector<unsigned char> ConvertIntToChar(unsigned number) {
   std::string str = std::to_string(number);
   std::vector<unsigned char> result;
@@ -22,7 +23,8 @@ std::vector<unsigned char> ConvertIntToChar(unsigned number) {
   return result;
 }
 
-
+// Constructor from an unsigned
+// Defaukt value is zero
 BigUnsigned::BigUnsigned(unsigned number) {
   std::vector<unsigned char> digits = ConvertIntToChar(number);
   for (const unsigned char& digit: digits) {
@@ -57,7 +59,7 @@ BigUnsigned& BigUnsigned::operator=(const BigUnsigned& obj) {
   return *this;
 }
 
-// Overload of the << operaotr
+// For printing to the terminal
 std::ostream& operator<<(std::ostream& os, const BigUnsigned& obj) {
   for (const unsigned char& digit : obj.digits_) {
     os << digit;
@@ -65,7 +67,7 @@ std::ostream& operator<<(std::ostream& os, const BigUnsigned& obj) {
   return os;
 }
 
-// Overload of the operator >>
+// For reading an object of the class
 std::istream& operator>>(std::istream& is, BigUnsigned& obj) {
   obj.digits_.clear();
   std::string number_line;
@@ -84,6 +86,7 @@ std::istream& operator>>(std::istream& is, BigUnsigned& obj) {
   return is;
 }
 
+// Comparision between two BigUnsigned
 bool BigUnsigned::operator==(const BigUnsigned& obj) const {
   if (digits_.size() != obj.digits_.size()) {
     return false;
@@ -97,11 +100,13 @@ bool BigUnsigned::operator==(const BigUnsigned& obj) const {
   return true;
 }
 
+// Less than comparation
 bool operator<(const BigUnsigned& left, const BigUnsigned& right) {
   if ((left >= right)) return false;
   else return true;
 }
 
+// Grater equal comparation
 bool BigUnsigned::operator>=(const BigUnsigned& other) const {
   if (digits_.size() > other.digits_.size()) {
     return true;
@@ -120,9 +125,7 @@ bool BigUnsigned::operator>=(const BigUnsigned& other) const {
   return true;
 }
 
-
-// modulo lo que pones
-// resultado el nuevo acarreo
+// Adding two BigUnsigned
 BigUnsigned operator+(const BigUnsigned& left, const BigUnsigned& right) {
   std::vector<unsigned> vec;
   unsigned sum;
@@ -157,6 +160,7 @@ BigUnsigned operator+(const BigUnsigned& left, const BigUnsigned& right) {
   return result;
 }
 
+// Adding two BigUnsigned
 BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
  if (digits_.size() < obj.digits_.size()) throw std::invalid_argument("Left side of the operation cannot be greater than right side");
 
@@ -200,6 +204,7 @@ BigUnsigned BigUnsigned::operator-(const BigUnsigned& obj) const {
   return result;
 }
 
+// Multiplying two BigUnsigned
 BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
   BigUnsigned acc;
   BigUnsigned aux;
@@ -244,6 +249,7 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
   return acc;
 }
 
+// Dividing two BigUnsigned
 BigUnsigned operator/(const BigUnsigned& left, const BigUnsigned& right) {
   if (right == BigUnsigned()) {
     throw std::invalid_argument("cannot divide by zero");
@@ -257,26 +263,21 @@ BigUnsigned operator/(const BigUnsigned& left, const BigUnsigned& right) {
   BigUnsigned remainder;
 
   for (size_t i = 0; i < left.digits_.size(); ++i) {
-    // Agregar el siguiente dígito al residuo
     remainder.digits_.push_back(left.digits_[i]);
 
-    // Eliminar ceros a la izquierda en el residuo
     while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
       remainder.digits_.erase(remainder.digits_.begin());
     }
 
-    // Calcular el dígito del cociente para esta posición
     unsigned count = 0;
     while ((remainder >= right)) {
       remainder = remainder - right;
       ++count;
     }
 
-    // Agregar el dígito al cociente
     quotient.digits_.push_back(count + '0');
   }
 
-  // Eliminar ceros a la izquierda en el cociente
   while (quotient.digits_.size() > 1 && quotient.digits_[0] == '0') {
     quotient.digits_.erase(quotient.digits_.begin());
   }
@@ -288,27 +289,23 @@ BigUnsigned BigUnsigned::operator%(const BigUnsigned& obj) const {
   if (obj == BigUnsigned()) {
     throw std::invalid_argument("Cannot divide by zero");
   } else if (*this < obj) {
-    return *this;  // Si el dividendo es menor que el divisor, el residuo es el dividendo
+    return *this; 
   }
 
   BigUnsigned remainder;
 
   for (size_t i = 0; i < digits_.size(); ++i) {
-    // Agregar el siguiente dígito al residuo
     remainder.digits_.push_back(digits_[i]);
 
-    // Eliminar ceros a la izquierda en el residuo
     while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
       remainder.digits_.erase(remainder.digits_.begin());
     }
 
-    // Restar el divisor tantas veces como sea posible
     while (remainder >= obj) {
       remainder = remainder - obj;
     }
   }
 
-  // Eliminar ceros a la izquierda en el residuo final
   while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
     remainder.digits_.erase(remainder.digits_.begin());
   }

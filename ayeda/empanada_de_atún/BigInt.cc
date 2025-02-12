@@ -32,9 +32,12 @@ std::istream& operator>>(std::istream& is, BigInteger& obj) {
   } else {
     obj.sign_ = true;
   }
-  line.erase(0, line.find_first_not_of('0'));
+ // line.erase(0, line.find_first_not_of('0'));
   std::istringstream input(line);
   input >> obj.value_;
+  if (obj.value_ == BigUnsigned() && obj.sign_ == false) {
+    obj.sign_ = true;
+  }
   return is;
 }
 
@@ -54,6 +57,7 @@ bool operator<(const BigInteger& left, const BigInteger& right) {
   }
 }
 
+// To add two BigInts
 BigInteger operator+(const BigInteger& left, const BigInteger& right) {
   if (left.sign_ == right.sign_) {
     std::cout << left.value_ << " " << right.value_ << std::endl;
@@ -76,12 +80,14 @@ BigInteger operator+(const BigInteger& left, const BigInteger& right) {
   }
 }
 
+// To substract two BigInts
 BigInteger BigInteger::operator-(const BigInteger& obj) const {
   BigInteger copy(obj.value_);
   copy.sign_ = !obj.sign_;
   return *this + copy;
 }
 
+// To multiply two BigInts
 BigInteger BigInteger::operator*(const BigInteger& obj) const {
   BigInteger res(value_ * obj.value_);
   if (sign_ == obj.sign_) {
@@ -93,6 +99,7 @@ BigInteger BigInteger::operator*(const BigInteger& obj) const {
   return res;
 }
 
+// To divide two BigInts
 BigInteger operator/(const BigInteger& left, const BigInteger& right) {
   BigInteger res(left.value_ / right.value_);
   if (left.sign_ == right.sign_) {
@@ -104,6 +111,7 @@ BigInteger operator/(const BigInteger& left, const BigInteger& right) {
   return res;
 }
 
+// Returns the mod
 BigInteger BigInteger::operator%(const BigInteger& obj) const {
   BigUnsigned result = value_ % obj.value_;  
   BigInteger modResult(result);
@@ -113,12 +121,12 @@ BigInteger BigInteger::operator%(const BigInteger& obj) const {
 
 // Pre-incremento (++a)
 BigInteger& BigInteger::operator++() {
-  if (sign_) {  // Si es positivo
+  if (sign_) { 
     value_ = value_ + 1;
-  } else {  // Si es negativo
+  } else {  
     value_ = value_ - 1;
     if (value_ == BigUnsigned()) {
-      sign_ = true;  // -1 + 1 = 0, cambia el signo a positivo
+      sign_ = true; 
     }
   }
   return *this;
@@ -127,20 +135,20 @@ BigInteger& BigInteger::operator++() {
 // Post-incremento (a++)
 BigInteger BigInteger::operator++(int) {
   BigInteger temp = *this;
-  ++(*this);  // Reutiliza el pre-incremento
+  ++(*this); 
   return temp;
 }
 
 // Pre-decremento (--a)
 BigInteger& BigInteger::operator--() {
-  if (sign_) {  // Si es positivo
+  if (sign_) {  
     if (value_ == BigUnsigned()) {
-      sign_ = false;  // 0 - 1 = -1
+      sign_ = false;  
       value_ = 1;
     } else {
       value_ = value_ - 1;
     }
-  } else {  // Si es negativo
+  } else { 
     value_ = value_ + 1;
   }
   return *this;
@@ -149,13 +157,14 @@ BigInteger& BigInteger::operator--() {
 // Post-decremento (a--)
 BigInteger BigInteger::operator--(int) {
   BigInteger temp = *this;
-  --(*this);  // Reutiliza el pre-decremento
+  --(*this); 
   return temp;
 }
 
+// returns the absolute value of the number
 BigInteger BigInteger::abs() const {
   BigInteger result = *this;
-  result.sign_ = true;  // Convertimos a positivo
+  result.sign_ = true; 
   return result;
 }
 
