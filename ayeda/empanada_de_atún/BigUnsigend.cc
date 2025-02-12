@@ -304,6 +304,36 @@ BigUnsigned BigUnsigned::operator%(const BigUnsigned& obj) const {
   return remainder;
 }
 
+// Pre-incremento (++a)
+BigUnsigned& BigUnsigned::operator++() {
+  *this = *this + 1;
+  return *this;
+}
+
+// Post-incremento (a++)
+BigUnsigned BigUnsigned::operator++(int) {
+  BigUnsigned temp = *this;
+  ++(*this);  // Reutiliza el operador de pre-incremento
+  return temp;
+}
+
+// Pre-decremento (--a)
+BigUnsigned& BigUnsigned::operator--() {
+  if (*this == BigUnsigned()) {
+    throw std::underflow_error("BigUnsigned cannot be decremented below zero");
+  }
+  *this = *this - 1;  
+  return *this;
+}
+
+// Post-decremento (a--)
+BigUnsigned BigUnsigned::operator--(int) {
+  BigUnsigned temp = *this;
+  --(*this); 
+  return temp;
+}
+
+
 
 
 

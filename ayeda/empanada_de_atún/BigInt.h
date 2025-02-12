@@ -21,6 +21,11 @@ class BigInteger {
   friend BigInteger operator/(const BigInteger& left, const BigInteger& right);
   BigInteger operator%(const BigInteger& obj) const;
 
+  BigInteger& operator++(); // Pre-incremento
+  BigInteger operator++(int a); // Post-incremento
+  BigInteger& operator--(); // Pre-decremento
+  BigInteger operator--(int b); // Post-decremento
+
  private:
   BigUnsigned value_;
   bool sign_; // true positive, false negative

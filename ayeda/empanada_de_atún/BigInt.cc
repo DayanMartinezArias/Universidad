@@ -24,18 +24,16 @@ std::ostream& operator<<(std::ostream& os, const BigInteger& obj) {
 }
 
 std::istream& operator>>(std::istream& is, BigInteger& obj) {
-  char sign;
-  is >> sign;
-  if (sign == '-') {
-   is >> obj.value_;
-   obj.sign_ = false;
+  std::string line;
+  is >> line;
+  if (line[0] == '-') {
+    obj.sign_ = false;
+    line = line.substr(1, line.length() - 1);
   } else {
-    std::string number;
-    is >> number;
-    number = sign + number;
-    std::istringstream input(number);
-    input >> obj.value_;
+    obj.sign_ = true;
   }
+  std::istringstream input(line);
+  input >> obj.value_;
   return is;
 }
 
@@ -112,5 +110,44 @@ BigInteger BigInteger::operator%(const BigInteger& obj) const {
   return modResult;
 }
 
+// Pre-incremento (++a)
+BigInteger& BigInteger::operator++() {
+  if (sign_) {  // Si es positivo
+    value_ = value_ + 1;
+  } else {  // Si es negativo
+    value_ = value_ - 1;
+    if (value_ == BigUnsigned()) {
+      sign_ = true;  // -1 + 1 = 0, cambia el signo a positivo
+    }
+  }
+  return *this;
+}
 
+// Post-incremento (a++)
+BigInteger BigInteger::operator++(int) {
+  BigInteger temp = *this;
+  ++(*this);  // Reutiliza el pre-incremento
+  return temp;
+}
 
+// Pre-decremento (--a)
+BigInteger& BigInteger::operator--() {
+  if (sign_) {  // Si es positivo
+    if (value_ == BigUnsigned()) {
+      sign_ = false;  // 0 - 1 = -1
+      value_ = 1;
+    } else {
+      value_ = value_ - 1;
+    }
+  } else {  // Si es negativo
+    value_ = value_ + 1;
+  }
+  return *this;
+}
+
+// Post-decremento (a--)
+BigInteger BigInteger::operator--(int) {
+  BigInteger temp = *this;
+  --(*this);  // Reutiliza el pre-decremento
+  return temp;
+}
