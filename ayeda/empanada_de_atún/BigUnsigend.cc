@@ -219,6 +219,8 @@ BigUnsigned BigUnsigned::operator*(const BigUnsigned& obj) const {
     if (carry > 0) {
       aux_vec.push_back(carry);
     }
+
+    carry = 0;
     
     aux.digits_.clear();
     for (const unsigned digit : aux_vec) {
