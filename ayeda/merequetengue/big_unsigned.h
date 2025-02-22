@@ -10,7 +10,8 @@ class BigUnsigned {
  public:
   
   // Constructores
-  BigUnsigned(const char* number = "0");
+  BigUnsigned(unsigned number = 0);
+  BigUnsigned(const char* number);
   BigUnsigned(const BigUnsigned<Base>& number); 
 
   // Operaciones artméticas
@@ -39,7 +40,8 @@ class BigUnsigned {
     }
     return os;
   }
-
+  
+  // Operador de inserción
   friend std::istream& operator>>(std::istream& is, BigUnsigned<Base>& number) {
     std::string line;
     is >> line;
@@ -66,6 +68,15 @@ class BigUnsigned {
   bool ValidateChar(const char digit) const;
   std::vector<char> digits_;
 };
+
+template <unsigned char Base>
+BigUnsigned<Base>::BigUnsigned(unsigned number) {
+  std::string str = std::to_string(number);
+  for (const char& digit: str) {
+    if(!ValidateChar(digit)) throw std::invalid_argument("Invalid character for base");
+    else digits_.emplace_back(digit);
+  } 
+}
 
 template <unsigned char Base>
 bool BigUnsigned<Base>::ValidateChar(const char c) const {
@@ -340,7 +351,7 @@ bool BigUnsigned<Base>::operator>=(const BigUnsigned<Base>& obj) const {
 // Pre-incremento (++a)
 template <unsigned char Base>
 BigUnsigned<Base>& BigUnsigned<Base>::operator++() {
-  *this = *this + "1";
+  *this = *this + 1;
   return *this;
 }
 
@@ -358,7 +369,7 @@ BigUnsigned<Base>& BigUnsigned<Base>::operator--() {
   if (*this == BigUnsigned()) {
     throw std::underflow_error("BigUnsigned cannot be decremented below zero");
   }
-  *this = *this - "1";  
+  *this = *this - 1;  
   return *this;
 }
 
