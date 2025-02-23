@@ -211,51 +211,50 @@ BigUnsigned<Base> BigUnsigned<Base>::operator-(const BigUnsigned<Base>& obj) con
   return result;
 }
 
-// Multiplying two BigUnsigned
 template <unsigned char Base>
 BigUnsigned<Base> BigUnsigned<Base>::operator*(const BigUnsigned<Base>& obj) const {
-  BigUnsigned<Base> acc;
+  BigUnsigned<Base> acc("0"); 
   BigUnsigned<Base> aux;
-
   std::vector<unsigned> aux_vec;
   unsigned carry = 0;
 
-  // Go through each element of obj in reverse
-  // works fine
-  for (int i{obj.digits_.size() -1}; i >= 0; --i) {
+  // Go through each digit of obj in reverse
+  for (int i{obj.digits_.size() - 1}; i >= 0; --i) {
     aux_vec.clear();
     unsigned bottom = charToValue(obj.digits_[i]);
 
-    //Adds zeros at the end of a vector
-    // works fine
-    for (int k{0}; k < obj.digits_.size() -1 -i; ++k ) {
-      aux_vec.push_back(0);
-    }
-    // Go through each element of this in reverse
-    // wroks fine
+    // Add trailing zeros (shifting effect)
+    aux_vec.insert(aux_vec.end(), obj.digits_.size() - 1 - i, 0);
+
+    // Multiply each digit of `this` by `bottom`
     for (int j{digits_.size() - 1}; j >= 0; --j) {
-      unsigned top = digits_[j] - '0';
+      unsigned top = charToValue(digits_[j]);
       unsigned sum = (top * bottom) + carry;
-      carry = sum / 10;
-      sum = sum % 10;
+      carry = sum / Base;
+      sum = sum % Base;
       aux_vec.push_back(sum);
     }
+
     if (carry > 0) {
       aux_vec.push_back(carry);
+      carry = 0;
     }
 
-    carry = 0;
-    
+    // Store aux_vec into aux
     aux.digits_.clear();
     for (const unsigned digit : aux_vec) {
-      aux.digits_.push_back(digit + '0');
+      aux.digits_.push_back(valueToChar(digit));
     }
-    std::reverse(aux.digits_.begin(), aux.digits_.end());
     
-    acc = acc + aux;
+    // Reverse only if necessary
+    std::reverse(aux.digits_.begin(), aux.digits_.end());
+
+    acc = acc + aux;  // Accumulate result
   }
+  
   return acc;
 }
+
 
 template <unsigned char Base>
 BigUnsigned<Base> BigUnsigned<Base>::operator%(const BigUnsigned<Base>& obj) const {

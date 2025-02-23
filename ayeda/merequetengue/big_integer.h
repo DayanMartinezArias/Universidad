@@ -18,6 +18,7 @@ class BigInteger {
 
   BigInteger<Base> operator+(const BigInteger<Base>& obj) const;
   BigInteger<Base> operator-(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator*(const BigInteger<Base>& obj) const;
   BigInteger<Base> operator/(const BigInteger<Base>& obj) const;
   BigInteger<Base> operator%(const BigInteger<Base>& obj) const;
 
@@ -128,6 +129,17 @@ BigInteger<Base> BigInteger<Base>::operator-(const BigInteger<Base>& obj) const 
 }
 
 template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator*(const BigInteger<Base>& obj) const {
+  BigInteger<Base> res(value_ * obj.value_);
+  if (sign_ == obj.sign_) {
+    res.sign_ = true;
+  } else {
+    res.sign_ = false;
+  }
+  return res; 
+}
+
+template <unsigned char Base>
 BigInteger<Base> BigInteger<Base>::operator%(const BigInteger<Base>& obj) const {
   BigUnsigned<Base> result = value_ % obj.value_;  
   BigInteger<Base> modResult(result);
@@ -182,11 +194,40 @@ BigInteger<Base> BigInteger<Base>::operator--(int) {
   return temp;
 }
 
+// Especialización para los números binarios
 template<>
 class BigInteger<2> {
  public:
-  void show() {std::cout << "A" << std::endl;};
+  BigInteger(const BigUnsigned<2>& value);
+  BigInteger(int n = 0) {}; 
+
+  friend std::istream& operator>>(std::istream& is, BigInteger<2> obj) {
+    std::string line;
+    is >> line;
+
+    for (const char& digit : line) {
+      obj.binary_digits.emplace_back(digit == '1');
+    }
+    return is;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const BigInteger<2> obj) {
+    for (const bool& digits : obj.binary_digits) {
+      os << digits;
+    }
+  }
+
+ private:
+  std::vector<bool> binary_digits;
 };
 
+BigInteger<2>::BigInteger(const BigUnsigned<2>& value) {
+  std::ostringstream oss;
+  oss << value;
+  std::string value_str = oss.str();
+  for (const char& digit : value_str) {
+    binary_digits.emplace_back(digit == '1');
+  }
+}
 
 #endif
