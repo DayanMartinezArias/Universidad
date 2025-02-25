@@ -5,7 +5,9 @@
 int main () {
   BigInteger<2> z;
   BigInteger<2> w;
-  std::cout << z << std::endl;
   std::cin >> z;
   std::cin >> w;
+  std::cout << z << std::endl;
+  std::cout << w << std::endl;
+  std::cout << z + w << std::endl;
 }
