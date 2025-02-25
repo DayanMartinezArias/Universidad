@@ -206,6 +206,7 @@ class BigInteger<2> {
   bool operator==(const BigInteger<2>& obj) const;
   BigInteger<2> operator-(const BigInteger<2>& obj) const;
   BigInteger<2> operator+(const BigInteger<2>& obj) const;
+  BigInteger<2> operator*(const BigInteger<2>& obj) const;
   
   friend std::istream& operator>>(std::istream& is, BigInteger<2>& obj) {
     std::string line;
@@ -264,8 +265,10 @@ BigInteger<2> BigInteger<2>::operator+(const BigInteger<2>& obj) const {
   int size_rhs = obj.binary_digits.size() - 1;
   
   bool carry = false;
+  bool can_overflow = false; 
+  if (binary_digits[size_lhs] == binary_digits[size_rhs]) can_overflow = true;
 
-  while (size_lhs >= 0 || size_rhs >= 0 || carry) {
+  while (size_lhs >= 0 || size_rhs >= 0) {
     bool left = size_lhs >= 0 ? binary_digits[size_lhs] : false;
     bool right = size_rhs >= 0 ? obj.binary_digits[size_rhs] : false;
 
@@ -279,15 +282,39 @@ BigInteger<2> BigInteger<2>::operator+(const BigInteger<2>& obj) const {
     size_lhs--;
     size_rhs--;
   }
-
+  if (result.binary_digits[result.binary_digits.size() - 1] != binary_digits[0]) {
+    result.binary_digits.emplace_back(binary_digits[0]);
+  }
   std::reverse(result.binary_digits.begin(), result.binary_digits.end());
   
   return result;
 }
 
+BigInteger<2> BigInteger<2>::operator-(const BigInteger<2>& obj) const {
+    return *this + obj.twos_complement();
+}
 
+BigInteger<2> BigInteger<2>::operator*(const BigInteger<2>& obj) const {
+    BigInteger<2> result; 
+    BigInteger<2> multiplicand = *this; 
+    BigInteger<2> multiplier = obj;
 
+    result.binary_digits.resize(multiplicand.binary_digits.size() + multiplier.binary_digits.size(), false);
 
+    for (int i = 0; i < multiplier.binary_digits.size(); ++i) {
+      if (multiplier.binary_digits[i]) { 
+      for (int j = 0; j < multiplicand.binary_digits.size(); ++j) {
+        if (multiplicand.binary_digits[j]) {
+          result.binary_digits[i + j] = result.binary_digits[i + j] ^ true;
+        }
+      }
+    }
+  }
+  if (std::all_of(result.binary_digits.begin(), result.binary_digits.end(), [](bool bit) { return !bit; })) {
+    result.binary_digits.push_back(false);
+  }
+  return result;
+}
 
 
 #endif

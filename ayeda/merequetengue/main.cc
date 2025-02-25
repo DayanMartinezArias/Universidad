@@ -9,5 +9,5 @@ int main () {
   std::cin >> w;
   std::cout << z << std::endl;
   std::cout << w << std::endl;
-  std::cout << z + w << std::endl;
+  std::cout << z * w << std::endl;
 }
