@@ -27,6 +27,8 @@ class BigInteger {
   BigInteger<Base>& operator--(); // Pre-decremento
   BigInteger<Base> operator--(int b); // Post-decremento
 
+  BigUnsigned<Base> GetUnsigned() const;
+
   friend std::ostream& operator<<(std::ostream& os, const BigInteger<Base>& obj) {
     char sign{'\0'};
     if(!obj.sign_)  {
@@ -59,6 +61,11 @@ class BigInteger {
   bool sign_;
 };
 
+template<unsigned char Base>
+BigUnsigned<Base> BigInteger<Base>::GetUnsigned() const {
+  return value_;
+}
+
 template <unsigned char Base>
 bool BigInteger<Base>::operator<(const BigInteger<Base>& obj) const {
   if (sign_ != obj.sign_) {
@@ -77,7 +84,7 @@ BigInteger<Base>::BigInteger(const BigUnsigned<Base>& value) : value_(value), si
 
 template <unsigned char Base>
 BigInteger<Base>::BigInteger(int n) : value_(std::fabs(n)) {
-  if (Base != 10) throw std::invalid_argument("Constructor only valid for base 10 numbers");
+  if (Base != 10 && (n != 0 && n != 1)) throw std::invalid_argument("Constructor only valid for base 10 numbers");
   if (n < 0) this->sign_ = false;
   else this->sign_ = true;
 } 
