@@ -207,13 +207,14 @@ template<>
 class BigInteger<2> {
  public:
   BigInteger(const BigUnsigned<2>& value);
-  BigInteger(int n = 0) : binary_digits(n) {};
+  BigInteger() : binary_digits(0) {};
   
   BigInteger<2> twos_complement() const;
   bool operator==(const BigInteger<2>& obj) const;
   BigInteger<2> operator-(const BigInteger<2>& obj) const;
   BigInteger<2> operator+(const BigInteger<2>& obj) const;
   BigInteger<2> operator*(const BigInteger<2>& obj) const;
+  BigInteger<2> operator/(const BigInteger<2>& obj) const;
   
   friend std::istream& operator>>(std::istream& is, BigInteger<2>& obj) {
     std::string line;
@@ -253,15 +254,12 @@ bool BigInteger<2>::operator==(const BigInteger<2>& obj) const {
 BigInteger<2> BigInteger<2>::twos_complement() const {
   BigInteger<2> result = *this;
 
-  // 1. Invertir todos los bits
   for (size_t i = 0; i < result.binary_digits.size(); ++i) {
     result.binary_digits[i] = !result.binary_digits[i];
   }
-
-  // 2. Sumar 1 al resultado
   BigInteger<2> one;
-  one.binary_digits.push_back(1); // Representa el número "1" en binario
-  return result + one; // Usa la suma ya implementada
+  one.binary_digits.push_back(1); 
+  return result + one; 
 }
 
 
@@ -322,6 +320,5 @@ BigInteger<2> BigInteger<2>::operator*(const BigInteger<2>& obj) const {
   }
   return result;
 }
-
 
 #endif

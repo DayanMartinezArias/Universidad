@@ -10,6 +10,11 @@ class BigRational {
 
   BigRational<Base> operator*(const BigRational<Base>& obj) const;
   BigRational<Base> operator+(const BigRational<Base>& obj) const;
+  BigRational<Base> operator-(const BigRational<Base>& obj) const;
+  BigRational<Base> operator/(const BigRational<Base>& obj) const;
+
+  bool operator<(const BigRational<Base>& obj) const;
+  bool operator==(const BigRational<Base>& obj) const;
 
   friend std::ostream& operator<<(std::ostream& os, const BigRational<Base>& obj) {
    os << obj.numerador_ << "/" << obj.denominador_;
@@ -19,7 +24,7 @@ class BigRational {
   friend std::istream& operator>>(std::istream& is, BigRational<Base>& obj) {
     is >> obj.numerador_;
     is >> obj.denominador_;
-    if (obj.denominador_ == BigUnsigned("0")) throw std::invalid_argument("Cannot initialize object with denominator being zero");
+    if (obj.denominador_ == BigUnsigned<Base>("0")) throw std::invalid_argument("Cannot initialize object with denominator being zero");
     obj.MinimumFraction();
     return is;
   }
@@ -34,7 +39,7 @@ class BigRational {
 
 template <unsigned char Base>
 BigRational<Base>::BigRational(const BigInteger<Base>& numerador, const BigUnsigned<Base>& denominador) : numerador_(numerador), denominador_(denominador) {
-  if (denominador_ == BigUnsigned("0")) throw std::invalid_argument("Cannot initialize object with denominator being zero");
+  if (denominador_ == BigUnsigned<Base>("0")) throw std::invalid_argument("Cannot initialize object with denominator being zero");
   MinimumFraction();
 }
 
@@ -59,7 +64,8 @@ void BigRational<Base>::MinimumFraction() {
 
 template <unsigned char Base>
 BigRational<Base> BigRational<Base>::operator*(const BigRational<Base>& obj) const {
-  return BigRational<Base>(denominador_ * obj.denominador_, numerador_ * obj.numerador_);
+  BigRational<Base> m(numerador_ * obj.numerador_, denominador_ * obj.denominador_);
+  return m;
 }
 
 template <unsigned char Base>
@@ -67,13 +73,36 @@ BigRational<Base> BigRational<Base>::operator+(const BigRational<Base>& obj) con
   BigUnsigned<Base> new_denominador = denominador_ * obj.denominador_;
   BigInteger<Base> new_numerador = numerador_ * obj.denominador_ + obj.numerador_ * denominador_;
 
-  if (new_numerador < 0) {
-    new_numerador = -new_numerador;
-  }
+  BigRational<Base> result(new_numerador, new_denominador);
+  result.MinimumFraction();
+  return result;
+}
+
+template <unsigned char Base>
+BigRational<Base> BigRational<Base>::operator-(const BigRational<Base>& obj) const {
+  BigUnsigned<Base> new_denominador = denominador_ * obj.denominador_;
+  BigInteger<Base> new_numerador = numerador_ * obj.denominador_ - obj.numerador_ * denominador_;
 
   BigRational<Base> result(new_numerador, new_denominador);
   result.MinimumFraction();
   return result;
+}
+
+template <unsigned char Base>
+BigRational<Base> BigRational<Base>::operator/(const BigRational<Base>& obj) const {
+  BigInteger<Base> new_num(numerador_ * BigInteger<Base>(obj.denominador_));
+  BigUnsigned<Base> new_den(denominador_ * obj.numerador_.GetUnsigned());
+  return BigRational(new_num, new_den);
+}
+
+template <unsigned char Base>
+bool BigRational<Base>::operator==(const BigRational<Base>& obj) const {
+  return denominador_ == obj.denominador_ && numerador_ == obj.numerador_;
+}
+
+template <unsigned char Base>
+bool BigRational<Base>::operator<(const BigRational<Base>& obj) const {
+  return (this->numerador_.GetUnsigned() * obj.denominador_) < (obj.numerador_.GetUnsigned() * this->denominador_);
 }
 
 #endif
