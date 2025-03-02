@@ -20,8 +20,8 @@ class BigNumber {
   virtual ~BigNumber() {};
   /*virtual BigNumber<Base>& add(const BigNumber<Base>& obj) const = 0;
   virtual BigNumber<Base>& subtract(const BigNumber<Base>&) const = 0;
-  virtual BigNumber<Base>& multiply(const BigNumber<Base>&) const = 0;
-  virtual BigNumber<Base>& divide(const BigNumber<Base>&) const = 0;*/
+  virtual BigNumber<Base>& multiply(const BigNumber<Base>&) const = 0;*/
+  virtual BigNumber<Base>& divide(const BigNumber<Base>& passed_obj) const = 0;
   
   virtual operator BigUnsigned<Base>() const = 0;
   virtual operator BigInteger<Base>() const = 0;

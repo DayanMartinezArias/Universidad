@@ -19,6 +19,8 @@ class BigRational : public BigNumber<Base> {
   BigInteger<Base> GetNumerator() const {return numerator_;}
   BigInteger<Base> GetDenominator() const {return denominator_;}
 
+  virtual BigNumber<Base>& divide(const BigNumber<Base>& passed_obj) const override {}
+
   operator BigUnsigned<Base>() const {}
   operator BigInteger<Base>() const {}
 

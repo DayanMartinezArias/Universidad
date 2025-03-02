@@ -24,6 +24,8 @@ class BigInteger : public BigNumber<Base> {
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
 
+  BigNumber<Base>& divide(const BigNumber<Base>& passed_obj) const override {}
+
   /*virtual BigNumber<Base>& add(const BigNumber<Base>& obj) const {};
   virtual BigNumber<Base>& subtract(const BigNumber<Base>&) const {};
   virtual BigNumber<Base>& multiply(const BigNumber<Base>&) const {};
