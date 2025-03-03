@@ -27,6 +27,9 @@ class BigInteger : public BigNumber<Base> {
 
   BigInteger<Base> operator+(const BigInteger<Base>& obj) const;
   BigInteger<Base> operator-(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator*(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator/(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator%(const BigInteger<Base>& obj) const;
 
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
@@ -87,12 +90,31 @@ BigInteger<Base>& BigInteger<Base>::operator=(const BigInteger<Base>& other) {
 
 template <unsigned char Base>
 BigInteger<Base> BigInteger<Base>::operator-(const BigInteger<Base>& obj) const {
-  
+  BigInteger<Base> result("0i");
+
+  if (sign_ == obj.sign_) {
+    if (!(abs() < obj.abs())) {
+      result.abs_ = abs() - obj.abs();
+      result.sign_ = sign_;  
+    } else {
+      result.abs_ = obj.abs() - abs();
+      result.sign_ = !sign_; 
+    }
+  } else {
+    result.abs_ = abs() + obj.abs();
+    result.sign_ = sign_;
+  }
+  if (result.abs_ == BigUnsigned<Base>("0u")) {
+    result.sign_ = true;
+  }
+
+  return result;
 }
+
 
 template <unsigned char Base>
 BigInteger<Base> BigInteger<Base>::operator+(const BigInteger<Base>& obj) const {
-  BigInteger<Base> result("0");
+  BigInteger<Base> result("0i");
   if (sign_ == obj.sign_) {
     result.sign_ = sign_;
     result.abs_ = abs() + obj.abs();
@@ -112,5 +134,41 @@ BigInteger<Base> BigInteger<Base>::operator+(const BigInteger<Base>& obj) const 
   }
   return result;
 }
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator*(const BigInteger<Base>& obj) const {
+  BigInteger<Base> res("0i");
+  res.abs_ = abs() * obj.abs();
+  res.sign_ = !(sign_ ^ obj.sign_);
+  if (res.abs() == BigUnsigned<Base>("0u")) {
+    res.sign_ = true;
+  }
+  return res;
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator/(const BigInteger<Base>& obj) const {
+  BigInteger<Base> res("0i");
+  res.abs_ = abs() / obj.abs();
+  res.sign_ = !(sign_ ^ obj.sign_);
+  if (res.abs() == BigUnsigned<Base>("0u")) {
+    res.sign_ = true;
+  }
+  return res;
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator%(const BigInteger<Base>& obj) const {
+  if (obj.abs() == BigUnsigned<Base>("0u")) {
+    throw std::runtime_error("Modulo by zero is undefined.");
+  }
+
+  BigUnsigned<Base> remainder = abs() % obj.abs();
+
+  BigInteger<Base> rem(remainder);
+  rem.sign_ = sign_;
+  return rem;
+}
+
 
 #endif

@@ -20,11 +20,15 @@ int main () {
   BigNumber<10>* bn2 = BigNumber<10>::create("0008u");
   (GetType(bn1) % GetType(bn2)).write(std::cout);*/
 
-  BigInteger<10> bi1("124i");
-  BigInteger<10> bi2("123i");
+  BigInteger<10> bi1("5i");
+  BigInteger<10> bi2("3i");
 
   -bi1;
+  -bi2;
   bi1.write(std::cout);
 
-  (bi1 - bi2).write(std::cout);
+  (bi1 % bi2).write(std::cout);
+
+  BigRational<10> a(bi1, bi2);
+  a.mcd().write(std::cout);
 }

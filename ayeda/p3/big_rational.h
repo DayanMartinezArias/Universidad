@@ -19,6 +19,9 @@ class BigRational : public BigNumber<Base> {
   BigInteger<Base> GetNumerator() const {return numerator_;}
   BigInteger<Base> GetDenominator() const {return denominator_;}
 
+  BigInteger<Base> mcd(const BigInteger<Base>& numerator, const BigInteger<Base>& denominator) const;
+  BigInteger<Base> mcd() const;
+
   operator BigUnsigned<Base>() const {}
   operator BigInteger<Base>() const {}
 
@@ -55,5 +58,15 @@ std::ostream& BigRational<Base>::write(std::ostream& os) const {
   return os;
 }
 
+template <unsigned char Base>
+BigInteger<Base> BigRational<Base>::mcd() const {
+  return mcd(GetNumerator(), GetDenominator());
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigRational<Base>::mcd(const BigInteger<Base>& numerator, const BigInteger<Base>& denominator) const {
+if (GetDenominator() == BigUnsigned<Base>("0u")) return numerator_;
+else return mcd(GetDenominator(), GetNumerator() % GetDenominator());
+}
 
 #endif
