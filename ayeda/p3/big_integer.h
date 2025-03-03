@@ -21,8 +21,8 @@ class BigInteger : public BigNumber<Base> {
   BigInteger<Base>& operator-();
   BigInteger<Base> operator-() const;
 
-  BigInteger<Base> operator==(const BigInteger<Base>& obj) const;
-  BigInteger<Base> operator<(const BigInteger<Base>& obj) const;
+  bool operator==(const BigInteger<Base>& obj) const;
+  bool operator<(const BigInteger<Base>& obj) const;
   BigInteger<Base>& operator=(const BigInteger<Base>& other);
 
   BigInteger<Base> operator+(const BigInteger<Base>& obj) const;
@@ -65,12 +65,12 @@ std::ostream& BigInteger<Base>::write(std::ostream& os) const {
 }
 
 template <unsigned char Base>
-BigInteger<Base> BigInteger<Base>::operator==(const BigInteger<Base>& obj) const {
+bool BigInteger<Base>::operator==(const BigInteger<Base>& obj) const {
   return (sign_ == obj.sign_) && (abs() == obj.abs());
 }
 
 template <unsigned char Base>
-BigInteger<Base> BigInteger<Base>::operator<(const BigInteger<Base>& obj) const {
+bool BigInteger<Base>::operator<(const BigInteger<Base>& obj) const {
   if (sign_ != obj.sign_) return !sign_;
   if (sign_) return abs() < obj.abs();
   else return (!(abs() < obj.abs()));
@@ -107,7 +107,7 @@ BigInteger<Base> BigInteger<Base>::operator+(const BigInteger<Base>& obj) const 
       result.abs_ =  abs() - obj.abs();
     }
   }
-  if (result == BigInteger<Base>("0")) {
+  if (abs() == obj.abs()) {
     result.sign_ = true;
   }
   return result;
