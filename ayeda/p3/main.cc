@@ -16,7 +16,15 @@ BigUnsigned<Base> GetType (BigNumber<Base>* obj) {
 }
 
 int main () {
-  BigNumber<10>* bn1 = BigNumber<10>::create("60u");
+  /*BigNumber<10>* bn1 = BigNumber<10>::create("60u");
   BigNumber<10>* bn2 = BigNumber<10>::create("0008u");
-  (GetType(bn1) % GetType(bn2)).write(std::cout);
+  (GetType(bn1) % GetType(bn2)).write(std::cout);*/
+
+  BigInteger<10> bi1("123i");
+  BigInteger<10> bi2("123i");
+
+  -bi1;
+  bi1.write(std::cout);
+
+  (bi1 + bi2).write(std::cout);
 }

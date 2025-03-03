@@ -25,6 +25,9 @@ class BigInteger : public BigNumber<Base> {
   BigInteger<Base> operator<(const BigInteger<Base>& obj) const;
   BigInteger<Base>& operator=(const BigInteger<Base>& other);
 
+  BigInteger<Base> operator+(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator-(const BigInteger<Base>& obj) const;
+
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
 
@@ -80,6 +83,34 @@ BigInteger<Base>& BigInteger<Base>::operator=(const BigInteger<Base>& other) {
     this->sign_ = other.sign_;
   }
   return *this;
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator-(const BigInteger<Base>& obj) const {
+  
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator+(const BigInteger<Base>& obj) const {
+  BigInteger<Base> result("0");
+  if (sign_ == obj.sign_) {
+    result.sign_ = sign_;
+    result.abs_ = abs() + obj.abs();
+  }
+  else {
+    if (abs() < obj.abs()) {
+      result.sign_ = obj.sign_;
+      result.abs_ =  obj.abs() - abs();
+    }
+    else {
+      result.sign_ = sign_;
+      result.abs_ =  abs() - obj.abs();
+    }
+  }
+  if (result == BigInteger<Base>("0")) {
+    result.sign_ = true;
+  }
+  return result;
 }
 
 #endif
