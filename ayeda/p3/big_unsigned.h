@@ -3,21 +3,10 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+
 #include "big_number.h"
 #include "big_integer.h"
-
-unsigned charToValue(char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
-  if (c >= 'a' && c <= 'f') return 10 + (c - 'a'); 
-  throw std::invalid_argument("Invalid character");
-}
-
-char valueToChar(unsigned val) {
-  if (val < 10) return '0' + val;
-  if (val < 16) return 'A' + (val - 10);
-  throw std::invalid_argument("Out of range value");
-}
 
 template <unsigned char Base>
 class BigNumber;
@@ -31,18 +20,23 @@ class BigUnsigned : public BigNumber<Base> {
   ~BigUnsigned() override {};
   BigUnsigned(const char* number);
   BigUnsigned() : digits_({'0'}) {}
+
   std::vector<char> GetVectorOfDigits() const;
 
-  /*virtual BigNumber<Base>& add(const BigNumber<Base>& obj) const;
-  virtual BigNumber<Base>& subtract(const BigNumber<Base>&) const {};
-  virtual BigNumber<Base>& multiply(const BigNumber<Base>&) const {};*/
-  BigNumber<Base>& divide(const BigNumber<Base>& passed_obj) const override;
+  bool operator==(const BigUnsigned<Base>& obj) const;
+  bool operator<(const BigUnsigned<Base>& obj) const;
+
+  BigUnsigned<Base>& operator=(const BigUnsigned<Base>& other);
 
   operator BigUnsigned<Base>() const override {return *this;};
   operator BigInteger<Base>() const override {return BigInteger<Base>(*this);};
   // operator Bigrational<Base>() const;
-  
 
+  BigUnsigned<Base> operator+(const BigUnsigned<Base>& obj) const;
+  BigUnsigned<Base> operator-(const BigUnsigned<Base>& obj) const;
+  BigUnsigned<Base> operator*(const BigUnsigned<Base>& obj) const;
+  BigUnsigned<Base> operator/(const BigUnsigned<Base>& obj) const;
+  
   std::ostream& write(std::ostream& os) const override;
   std::istream& read(std::istream&) override;
 
@@ -81,10 +75,14 @@ char BigUnsigned<Base>::ValToChar(const unsigned& value) {
 template <unsigned char Base>
 BigUnsigned<Base>::BigUnsigned(const char* number) {
   // Comppribación de caracteres válidos
-  while (*number != 'u' && *number != 'i') {
+  while (*number == '0') {
+    number++;
+  }
+  while (*number != 'u' && *number != 'i' && *number != '\n') {
     digits_.emplace_back(*number);
     number++;
   }
+  if (digits_.empty()) digits_ = {'0'};
 }
 
 template <unsigned char Base>
@@ -111,14 +109,159 @@ std::istream& BigUnsigned<Base>::read(std::istream& is) {
 }
 
 template <unsigned char Base>
-BigNumber<Base>& BigUnsigned<Base>::divide(const BigNumber<Base>& passed_obj) const {
- /* BigUnsigned<Base> obj = GetType(passed_obj);
-  if (obj == BigUnsigned<Base>()) {
+bool BigUnsigned<Base>::operator==(const BigUnsigned<Base>& obj) const {
+  if (digits_.size() != obj.digits_.size()) return false;
+  for (size_t i{0}; i < digits_.size(); ++i) {
+    if (digits_[i] != obj.digits_[i]) return false;
+  }
+  return true;
+}
+
+template <unsigned char Base>
+bool BigUnsigned<Base>::operator<(const BigUnsigned<Base>& obj) const {
+  if (digits_.size() != obj.digits_.size()) {
+    return digits_.size() < obj.digits_.size();
+  }
+
+  for (size_t i = 0; i < digits_.size(); ++i) {
+    if (CharToVal(digits_[i]) != CharToVal(obj.digits_[i])) {
+      return CharToVal(digits_[i]) < CharToVal(obj.digits_[i]);
+    }
+  }
+  
+  return false;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base>& BigUnsigned<Base>::operator=(const BigUnsigned<Base>& other) {
+  if (this != &other) {  
+    this->digits_ = other.digits_;
+  }
+  return *this;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base> BigUnsigned<Base>::operator+(const BigUnsigned<Base>& obj) const {
+  std::vector<char> vec;
+  unsigned sum;
+  unsigned carry = 0;
+
+  int left_index = digits_.size() - 1;
+  int right_index = obj.digits_.size() - 1;
+
+  while (left_index >= 0 || right_index >= 0 || carry > 0) {
+    unsigned left_digit = (left_index >= 0) ? CharToVal(digits_[left_index]) : 0;
+    unsigned right_digit = (right_index >= 0) ? CharToVal(obj.digits_[right_index]) : 0;
+    sum = left_digit + right_digit + carry;
+    carry = sum / Base;
+    sum = sum % Base;
+
+    vec.emplace_back(ValToChar(sum));
+
+    --left_index;
+    --right_index;
+  }
+
+  std::reverse(vec.begin(), vec.end());
+
+  BigUnsigned<Base> result;
+  result.digits_.assign(vec.begin(), vec.end());
+  return result;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base> BigUnsigned<Base>::operator-(const BigUnsigned<Base>& obj) const {
+ if (digits_.size() < obj.digits_.size()) throw std::invalid_argument("Left side of the operation cannot be greater than right side");
+
+ std::vector<char> vec;
+  unsigned sub;
+  unsigned carry = 0;
+
+  int left_index = digits_.size() - 1;
+  int right_index = obj.digits_.size() - 1;
+
+  while (left_index >= 0 || right_index >= 0) {
+    unsigned left_digit = CharToVal(digits_[left_index]);
+    unsigned right_digit = (right_index >= 0) ? CharToVal(obj.digits_[right_index]): 0;
+
+    if (left_digit < right_digit + carry) {
+      left_digit += Base;
+      sub = left_digit - right_digit - carry;
+      carry = 1;
+    } else {
+      sub = left_digit - right_digit - carry;
+      carry = 0;
+    }
+    vec.emplace_back(ValToChar(sub));
+
+    --left_index;
+    --right_index;
+  } 
+  if (carry == 1) throw std::invalid_argument("Left side of the operation cannot be greater than right side");
+  
+  for (size_t i{vec.size() -1}; i >= 1; --i) {
+    if (vec[i] == '0') vec.pop_back();
+    else break;
+  }
+
+  std::reverse(vec.begin(), vec.end()); 
+  BigUnsigned<Base> result;
+  result.digits_.assign(vec.begin(), vec.end());
+  return result;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base> BigUnsigned<Base>::operator*(const BigUnsigned<Base>& obj) const {
+  BigUnsigned<Base> acc("0u"); 
+  BigUnsigned<Base> aux("0u");
+  std::vector<unsigned> aux_vec;
+  unsigned carry = 0;
+
+  for (int i{obj.digits_.size() - 1}; i >= 0; --i) {
+    aux_vec.clear();
+    unsigned bottom = CharToVal(obj.digits_[i]);
+
+    // Add trailing zeros (shifting effect)
+    aux_vec.insert(aux_vec.end(), obj.digits_.size() - 1 - i, 0);
+
+    // Multiply each digit of `this` by `bottom`
+    for (int j{digits_.size() - 1}; j >= 0; --j) {
+      unsigned top = CharToVal(digits_[j]);
+      unsigned sum = (top * bottom) + carry;
+      carry = sum / Base;
+      sum = sum % Base;
+      aux_vec.push_back(sum);
+    }
+
+    if (carry > 0) {
+      aux_vec.push_back(carry);
+      carry = 0;
+    }
+
+    // Store aux_vec into aux
+    aux.digits_.clear();
+    for (const unsigned digit : aux_vec) {
+      aux.digits_.push_back(ValToChar(digit));
+    }
+    
+    // Reverse only if necessary
+    std::reverse(aux.digits_.begin(), aux.digits_.end());
+
+    auto it = std::find_if(aux.digits_.begin(), aux.digits_.end(), [](char x) { return x != '0'; });
+    aux.digits_.erase(aux.digits_.begin(), it);
+    acc = acc + aux;  // Accumulate result
+  }
+  return acc;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base> BigUnsigned<Base>::operator/(const BigUnsigned<Base>& obj) const {
+  if (obj == BigUnsigned<Base>("0u")) {
     throw std::invalid_argument("cannot divide by zero");
   } else if (*this < obj) {
     return BigUnsigned<Base>();
   } else if (*this == obj) {
-    return BigUnsigned<Base>("1");
+    return BigUnsigned<Base>("1u");
   }
 
   BigUnsigned<Base> quotient;
@@ -132,19 +275,19 @@ BigNumber<Base>& BigUnsigned<Base>::divide(const BigNumber<Base>& passed_obj) co
     }
 
     unsigned count = 0;
-    while ((remainder >= obj)) {
+    while (!(remainder < obj)) {
       remainder = remainder - obj;
       ++count;
     }
 
-    quotient.digits_.push_back(valueToChar(count));
+    quotient.digits_.push_back(ValToChar(count));
   }
 
   while (quotient.digits_.size() > 1 && quotient.digits_[0] == '0') {
     quotient.digits_.erase(quotient.digits_.begin());
   }
 
-  return quotient;*/
+  return quotient;
 }
 
 #endif
