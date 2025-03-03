@@ -21,6 +21,10 @@ class BigInteger : public BigNumber<Base> {
   BigInteger<Base>& operator-();
   BigInteger<Base> operator-() const;
 
+  BigInteger<Base> operator==(const BigInteger<Base>& obj) const;
+  BigInteger<Base> operator<(const BigInteger<Base>& obj) const;
+  BigInteger<Base>& operator=(const BigInteger<Base>& other);
+
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
 
@@ -55,6 +59,27 @@ std::ostream& BigInteger<Base>::write(std::ostream& os) const {
   }
   os << "\n";
   return os;
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator==(const BigInteger<Base>& obj) const {
+  return (sign_ == obj.sign_) && (abs() == obj.abs());
+}
+
+template <unsigned char Base>
+BigInteger<Base> BigInteger<Base>::operator<(const BigInteger<Base>& obj) const {
+  if (sign_ != obj.sign_) return !sign_;
+  if (sign_) return abs() < obj.abs();
+  else return (!(abs() < obj.abs()));
+}
+
+template <unsigned char Base>
+BigInteger<Base>& BigInteger<Base>::operator=(const BigInteger<Base>& other) {
+  if (this != &other) {  
+    this->digits_ = other.digits_;
+    this->sign_ = other.sign_;
+  }
+  return *this;
 }
 
 #endif

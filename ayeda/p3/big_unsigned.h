@@ -36,6 +36,7 @@ class BigUnsigned : public BigNumber<Base> {
   BigUnsigned<Base> operator-(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator*(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator/(const BigUnsigned<Base>& obj) const;
+  BigUnsigned<Base> operator%(const BigUnsigned<Base>& obj) const;
   
   std::ostream& write(std::ostream& os) const override;
   std::istream& read(std::istream&) override;
@@ -288,6 +289,34 @@ BigUnsigned<Base> BigUnsigned<Base>::operator/(const BigUnsigned<Base>& obj) con
   }
 
   return quotient;
+}
+
+template <unsigned char Base>
+BigUnsigned<Base> BigUnsigned<Base>::operator%(const BigUnsigned<Base>& obj) const {
+ if (obj == BigUnsigned<Base>("0u")) {
+    throw std::invalid_argument("Cannot divide by zero");
+  } else if (*this < obj) {
+    return *this; 
+  }
+
+  BigUnsigned<Base> remainder;
+
+  for (size_t i = 0; i < digits_.size(); ++i) {
+    remainder.digits_.push_back(digits_[i]);
+
+    while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
+      remainder.digits_.erase(remainder.digits_.begin());
+    }
+
+    while (!(remainder < obj)) {
+      remainder = remainder - obj;
+    }
+  }
+
+  while (remainder.digits_.size() > 1 && remainder.digits_[0] == '0') {
+    remainder.digits_.erase(remainder.digits_.begin());
+  }
+  return remainder;
 }
 
 #endif
