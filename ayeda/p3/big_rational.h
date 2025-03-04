@@ -29,8 +29,8 @@ class BigRational : public BigNumber<Base> {
 
   BigRational<Base> operator+(const BigRational<Base>& obj) const;
 
-  operator BigUnsigned<Base>() const {}
-  operator BigInteger<Base>() const {}
+  operator BigUnsigned<Base>() const {return BigUnsigned<Base>((numerator_ / denominator_).abs());}
+  operator BigInteger<Base>() const {return numerator_ / denominator_;}
 
   virtual std::ostream& write(std::ostream& os) const override;
   virtual std::istream& read(std::istream& is) {};

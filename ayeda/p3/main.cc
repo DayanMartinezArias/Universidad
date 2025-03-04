@@ -35,10 +35,13 @@ int main () {
   a.Minimize();
   a.write(std::cout);
 
-  BigInteger<10> bi11("1i");
+  BigInteger<10> bi11("10i");
   BigInteger<10> bi22("5i");
 
   BigRational<10> a1(bi11, bi22);
+  BigInteger<10> bb = (BigInteger<10>)a1;
+  bb.write(std::cout);
+
 
   (a1 + a).write(std::cout);
 }
