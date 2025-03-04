@@ -82,7 +82,7 @@ bool BigInteger<Base>::operator<(const BigInteger<Base>& obj) const {
 template <unsigned char Base>
 BigInteger<Base>& BigInteger<Base>::operator=(const BigInteger<Base>& other) {
   if (this != &other) {  
-    this->digits_ = other.digits_;
+    this->abs_ = other.abs_;
     this->sign_ = other.sign_;
   }
   return *this;
