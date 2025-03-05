@@ -30,7 +30,7 @@ class BigUnsigned : public BigNumber<Base> {
 
   operator BigUnsigned<Base>() const override {return *this;};
   operator BigInteger<Base>() const override {return BigInteger<Base>(*this);};
-  // operator Bigrational<Base>() const;
+  //operator Bigrational<Base>() const override {};
 
   BigUnsigned<Base> operator+(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator-(const BigUnsigned<Base>& obj) const;

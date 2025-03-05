@@ -28,9 +28,13 @@ class BigRational : public BigNumber<Base> {
   BigRational<Base>& operator=(const BigRational<Base>& other);
 
   BigRational<Base> operator+(const BigRational<Base>& obj) const;
+  BigRational<Base> operator-(const BigRational<Base>& obj) const;
+  BigRational<Base> operator*(const BigRational<Base>& obj) const;
+  BigRational<Base> operator/(const BigRational<Base>& obj) const;
 
-  operator BigUnsigned<Base>() const {return BigUnsigned<Base>((numerator_ / denominator_).abs());}
-  operator BigInteger<Base>() const {return numerator_ / denominator_;}
+  operator BigUnsigned<Base>() const override {return BigUnsigned<Base>((numerator_ / denominator_).abs());}
+  operator BigInteger<Base>() const override {return numerator_ / denominator_;}
+  //operator BigRational<Base>() const override {return *this;}
 
   virtual std::ostream& write(std::ostream& os) const override;
   virtual std::istream& read(std::istream& is) {};
@@ -98,6 +102,26 @@ BigRational<Base> BigRational<Base>::operator+(const BigRational<Base>& obj) con
   BigRational<Base> result(new_numerator, new_denominator);
   result.Minimize();
   return result;
+}
+
+template <unsigned char Base>
+BigRational<Base> BigRational<Base>::operator-(const BigRational<Base>& obj) const {
+  BigInteger<Base> new_denominator = denominator_ * obj.denominator_;
+  BigInteger<Base> new_numerator = numerator_ * obj.denominator_ - obj.numerator_ * denominator_;
+
+  BigRational<Base> result(new_numerator, new_denominator);
+  result.Minimize();
+  return result;
+}
+
+template <unsigned char Base>
+BigRational<Base> BigRational<Base>::operator*(const BigRational<Base>& obj) const {
+  return BigRational<Base>(numerator_ * obj.numerator_, denominator_ * obj.denominator_);
+}
+
+template <unsigned char Base>
+BigRational<Base> BigRational<Base>::operator/(const BigRational<Base>& obj) const {
+  return BigRational<Base>(numerator_ * obj.denominator_, denominator_ * obj.numerator_);
 }
 
 template <unsigned char Base>

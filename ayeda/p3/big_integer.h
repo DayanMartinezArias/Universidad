@@ -11,6 +11,8 @@ class BigNumber;
 template <unsigned char Base>
 class BigUnsigned;
 
+template <unsigned char Base>
+class BigRational;
 
 template <unsigned char Base>
 class BigInteger : public BigNumber<Base> {
@@ -36,6 +38,7 @@ class BigInteger : public BigNumber<Base> {
 
   operator BigUnsigned<Base>() const override {return abs_;};
   operator BigInteger<Base>() const {return *this;};
+  //operator Bigrational<Base>() const override {return BigRational<Base>(numerator_, BigInteger<Base>("1i"));}
   
   virtual std::ostream& write(std::ostream& os) const override;
   virtual std::istream& read(std::istream& is) {};
