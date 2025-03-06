@@ -33,12 +33,14 @@ class BigInteger : public BigNumber<Base> {
   BigInteger<Base> operator/(const BigInteger<Base>& obj) const;
   BigInteger<Base> operator%(const BigInteger<Base>& obj) const;
 
+  BigNumber<Base>* add(const BigNumber<Base>& obj) const;
+
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
 
   operator BigUnsigned<Base>() const override {return abs_;};
-  operator BigInteger<Base>() const {return *this;};
-  //operator Bigrational<Base>() const override {return BigRational<Base>(numerator_, BigInteger<Base>("1i"));}
+  operator BigInteger<Base>() const override {return *this;};
+  operator BigRational<Base>() const override {return BigRational<Base>(*this, BigInteger<Base>("1i"));}
   
   virtual std::ostream& write(std::ostream& os) const override;
   virtual std::istream& read(std::istream& is) {};
@@ -171,6 +173,11 @@ BigInteger<Base> BigInteger<Base>::operator%(const BigInteger<Base>& obj) const 
   BigInteger<Base> rem(remainder);
   rem.sign_ = sign_;
   return rem;
+}
+
+template <unsigned char Base>
+BigNumber<Base>* BigInteger<Base>::add(const BigNumber<Base>& obj) const {
+  return new BigInteger<Base>(*this + (BigInteger<Base>)obj);
 }
 
 

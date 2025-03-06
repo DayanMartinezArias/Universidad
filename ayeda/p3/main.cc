@@ -16,32 +16,12 @@ BigUnsigned<Base> GetType (BigNumber<Base>* obj) {
 }
 
 int main () {
-  /*BigNumber<10>* bn1 = BigNumber<10>::create("60u");
-  BigNumber<10>* bn2 = BigNumber<10>::create("0008u");
-  (GetType(bn1) % GetType(bn2)).write(std::cout);*/
-
-  BigInteger<10> bi1("6i");
-  BigInteger<10> bi2("4i");
-
-   bi1;
-  -bi2;
-  bi1.write(std::cout);
-
-  (bi1 % bi2).write(std::cout);
-
-  BigRational<10> a(bi1, bi2);
-  std::cout << "hola" << std::endl;
-  a.mcd().write(std::cout);
-  a.Minimize();
+  auto bn1 = BigNumber<10>::create("60u");
+  BigNumber<10>* bn2 = BigNumber<10>::create("0008i");
+  (GetType(bn1) % GetType(bn2)).write(std::cout);
+  BigInteger<10> a("7i");
   a.write(std::cout);
-
-  BigInteger<10> bi11("10i");
-  BigInteger<10> bi22("5i");
-
-  BigRational<10> a1(bi11, bi22);
-  BigInteger<10> bb = (BigInteger<10>)a1;
-  bb.write(std::cout);
-
-
-  (a1 + a).write(std::cout);
+  -a;
+  a.add(*bn1)->write(std::cout);
+  a.write(std::cout);
 }

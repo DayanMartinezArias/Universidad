@@ -30,13 +30,15 @@ class BigUnsigned : public BigNumber<Base> {
 
   operator BigUnsigned<Base>() const override {return *this;};
   operator BigInteger<Base>() const override {return BigInteger<Base>(*this);};
-  //operator Bigrational<Base>() const override {};
+  operator BigRational<Base>() const override {return BigRational<Base>(BigInteger<Base>(*this), BigInteger<Base>(BigUnsigned<Base>("1u")));};
 
   BigUnsigned<Base> operator+(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator-(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator*(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator/(const BigUnsigned<Base>& obj) const;
   BigUnsigned<Base> operator%(const BigUnsigned<Base>& obj) const;
+
+  BigNumber<Base>* add(const BigNumber<Base>& obj) const;
   
   std::ostream& write(std::ostream& os) const override;
   std::istream& read(std::istream&) override;
@@ -317,6 +319,11 @@ BigUnsigned<Base> BigUnsigned<Base>::operator%(const BigUnsigned<Base>& obj) con
     remainder.digits_.erase(remainder.digits_.begin());
   }
   return remainder;
+}
+
+template <unsigned char Base>
+BigNumber<Base>* BigUnsigned<Base>::add(const BigNumber<Base>& obj) const {
+  return new BigUnsigned<Base>(*this + (BigUnsigned<Base>)obj);
 }
 
 #endif
