@@ -113,8 +113,6 @@ std::istream& BigUnsigned<Base>::read(std::istream& is) {
 
 template <unsigned char Base>
 bool BigUnsigned<Base>::operator==(const BigUnsigned<Base>& obj) const {
-  write(std::cout);
-  obj.write(std::cout);
   if (digits_.size() != obj.digits_.size()) return false;
   for (size_t i{0}; i < digits_.size(); ++i) {
     if (digits_[i] != obj.digits_[i]) return false;
@@ -326,7 +324,13 @@ BigUnsigned<Base> BigUnsigned<Base>::operator%(const BigUnsigned<Base>& obj) con
 
 template <unsigned char Base>
 BigNumber<Base>* BigUnsigned<Base>::add(const BigNumber<Base>& obj) const {
-  return new BigUnsigned<Base>(*this + (BigUnsigned<Base>)obj);
+  if (const BigInteger<Base>* pIntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + *pIntObj);
+  } else if (const BigUnsigned<Base>* pUntObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + (BigUnsigned<Base>)*pUntObj);
+  } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + (BigUnsigned<Base>)*pRatObj);
+  }
 }
 
 #endif

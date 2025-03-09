@@ -62,6 +62,7 @@ BigRational<Base>::BigRational(const BigInteger<Base> numerator, const BigIntege
     -numerator_;
     -denominator_;   
   }
+  Minimize();
 }
 
 template <unsigned char Base>

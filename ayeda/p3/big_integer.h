@@ -18,7 +18,8 @@ template <unsigned char Base>
 class BigInteger : public BigNumber<Base> {
  public:
   ~BigInteger() {};
-  BigInteger(const BigUnsigned<Base> abs) : abs_(abs), sign_(true) {};
+  BigInteger(const BigUnsigned<Base>& abs) : abs_(abs), sign_(true) {};
+  BigInteger(const BigUnsigned<Base>& abs, const bool& sign) : abs_(abs), sign_(sign) {}
 
   BigInteger<Base>& operator-();
   BigInteger<Base> operator-() const;
