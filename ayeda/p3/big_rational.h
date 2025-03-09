@@ -34,6 +34,7 @@ class BigRational : public BigNumber<Base> {
   BigRational<Base> operator/(const BigRational<Base>& obj) const;
 
   BigNumber<Base>* add(const BigNumber<Base>& obj) const;
+  BigNumber<Base>* sub(const BigNumber<Base>& obj) const;
 
 
   operator BigUnsigned<Base>() const override {return BigUnsigned<Base>((numerator_ / denominator_).abs());}
@@ -165,5 +166,15 @@ BigNumber<Base>* BigRational<Base>::add(const BigNumber<Base>& obj) const {
   }
 }
 
+template <unsigned char Base>
+BigNumber<Base>* BigRational<Base>::sub(const BigNumber<Base>& obj) const {
+  if (const BigRational<Base>* pIntObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigRational<Base>(*this - *pIntObj);
+  } else if (const BigInteger<Base>* pUntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigRational<Base>(*this - (BigRational<Base>)*pUntObj);
+  } else if (const BigUnsigned<Base>* pRatObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigRational<Base>(*this - (BigRational<Base>)*pRatObj);
+  }
+}
 
 #endif

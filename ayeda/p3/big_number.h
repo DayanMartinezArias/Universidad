@@ -24,6 +24,7 @@ class BigNumber {
   virtual operator BigRational<Base>() const = 0;
   
   virtual BigNumber<Base>* add(const BigNumber<Base>& obj) const = 0;
+  virtual BigNumber<Base>* sub(const BigNumber<Base>& obj) const = 0;
 
   virtual std::ostream& write(std::ostream& os) const = 0;
   virtual std::istream& read(std::istream& is) = 0;

@@ -39,6 +39,7 @@ class BigUnsigned : public BigNumber<Base> {
   BigUnsigned<Base> operator%(const BigUnsigned<Base>& obj) const;
 
   BigNumber<Base>* add(const BigNumber<Base>& obj) const;
+  BigNumber<Base>* sub(const BigNumber<Base>& obj) const;
   
   std::ostream& write(std::ostream& os) const override;
   std::istream& read(std::istream&) override;
@@ -330,6 +331,17 @@ BigNumber<Base>* BigUnsigned<Base>::add(const BigNumber<Base>& obj) const {
     return new BigInteger<Base>(*this + (BigUnsigned<Base>)*pUntObj);
   } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
     return new BigInteger<Base>(*this + (BigUnsigned<Base>)*pRatObj);
+  }
+}
+
+template <unsigned char Base>
+BigNumber<Base>* BigUnsigned<Base>::sub(const BigNumber<Base>& obj) const {
+  if (const BigInteger<Base>* pIntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this - *pIntObj);
+  } else if (const BigUnsigned<Base>* pUntObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this - (BigUnsigned<Base>)*pUntObj);
+  } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this - (BigUnsigned<Base>)*pRatObj);
   }
 }
 
