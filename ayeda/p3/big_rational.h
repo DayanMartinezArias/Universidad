@@ -53,7 +53,9 @@ class BigRational : public BigNumber<Base> {
 };
 
 template <unsigned char Base>
-BigRational<Base>::BigRational(const BigRational<Base>& obj) : denominator_(obj.denominator_), numerator_(obj.numerator_) {}
+BigRational<Base>::BigRational(const BigRational<Base>& obj) : denominator_(obj.denominator_), numerator_(obj.numerator_) {
+  if (numerator_ == BigInteger<Base>("0i")) throw BigNumberDivisionByZero();
+}
 
 template <unsigned char Base>
 BigRational<Base>::BigRational(const BigInteger<Base> numerator, const BigInteger<Base> denominator) : numerator_(numerator), denominator_(denominator) {
@@ -133,6 +135,7 @@ BigRational<Base> BigRational<Base>::operator*(const BigRational<Base>& obj) con
 
 template <unsigned char Base>
 BigRational<Base> BigRational<Base>::operator/(const BigRational<Base>& obj) const {
+  if (obj.numerator_.abs() == BigUnsigned<Base>("0u")) throw BigNumberDivisionByZero();
   return BigRational<Base>(numerator_ * obj.denominator_, denominator_ * obj.numerator_);
 }
 

@@ -55,8 +55,8 @@ class BigNumber {
       }
       const char *delimiter = strchr(string_of_digits, '/');
       if (delimiter) {
-        const char *first = string_of_digits;  // First part
-        const char *second = delimiter + 1;  // Second part
+        const char *first = string_of_digits; 
+        const char *second = delimiter + 1;
         BigInteger<Base> n(first, ne);
         BigInteger<Base> d(second);
         return new BigRational<Base>(n, d);

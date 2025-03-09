@@ -5,10 +5,10 @@
 
 
 int main () {
-  const char* ab = "-60/15r";
+  const char* ab = "1/1r";
   auto bn1 = BigNumber<10>::create(ab);
   auto bn2 = BigNumber<10>::create("9u");
-  auto bn3 = BigNumber<10>::create("-9i");
+  auto bn3 = BigNumber<10>::create("3i");
   bn1->write(std::cout);
   bn2->write(std::cout);
   bn3->write(std::cout);

@@ -268,7 +268,7 @@ BigUnsigned<Base> BigUnsigned<Base>::operator*(const BigUnsigned<Base>& obj) con
 template <unsigned char Base>
 BigUnsigned<Base> BigUnsigned<Base>::operator/(const BigUnsigned<Base>& obj) const {
   if (obj == BigUnsigned<Base>("0u")) {
-    throw std::invalid_argument("cannot divide by zero");
+    throw BigNumberDivisionByZero();
   } else if (*this < obj) {
     return BigUnsigned<Base>();
   } else if (*this == obj) {
