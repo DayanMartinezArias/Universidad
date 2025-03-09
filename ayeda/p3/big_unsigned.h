@@ -7,6 +7,7 @@
 
 #include "big_number.h"
 #include "big_integer.h"
+#include "big_number_exception.h"
 
 template <unsigned char Base>
 class BigNumber;
@@ -50,6 +51,10 @@ class BigUnsigned : public BigNumber<Base> {
   static char ValToChar(const unsigned& value);
 
  private:
+  bool isValidDigit(char c) {
+    if (Base <= 10) return (c >= '0' && c < '0' + Base);
+    return ( (c >= '0' && c <= '9') || (c >= 'A' && c < 'A' + (Base - 10)) );
+  }
   std::vector<char> digits_;
 };
 
@@ -80,11 +85,11 @@ char BigUnsigned<Base>::ValToChar(const unsigned& value) {
 
 template <unsigned char Base>
 BigUnsigned<Base>::BigUnsigned(const char* number) {
-  // Comppribación de caracteres válidos
   while (*number == '0') {
     number++;
   }
   while (*number != 'u' && *number != 'i' && *number != 'r' && *number != '/' && *number != '\n') {
+    if (!isValidDigit(*number)) throw BigNumberBadDigit(number);
     digits_.emplace_back(*number);
     number++;
   }
