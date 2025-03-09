@@ -36,6 +36,8 @@ class BigInteger : public BigNumber<Base> {
 
   BigNumber<Base>* add(const BigNumber<Base>& obj) const;
   BigNumber<Base>* sub(const BigNumber<Base>& obj) const;
+  BigNumber<Base>* multiplicate(const BigNumber<Base>& obj) const;
+  BigNumber<Base>* divide(const BigNumber<Base>& obj) const;
 
   BigUnsigned<Base> abs() const {return abs_;}
   bool GetSign() const {return sign_;}
@@ -196,6 +198,28 @@ BigNumber<Base>* BigInteger<Base>::sub(const BigNumber<Base>& obj) const {
     return new BigInteger<Base>(*this - (BigInteger<Base>)*pUntObj);
   } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
     return new BigInteger<Base>(*this - (BigInteger<Base>)*pRatObj);
+  }
+}
+
+template <unsigned char Base>
+BigNumber<Base>* BigInteger<Base>::multiplicate(const BigNumber<Base>& obj) const {
+  if (const BigInteger<Base>* pIntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this * *pIntObj);
+  } else if (const BigUnsigned<Base>* pUntObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this * (BigInteger<Base>)*pUntObj);
+  } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this * (BigInteger<Base>)*pRatObj);
+  }
+}
+
+template <unsigned char Base>
+BigNumber<Base>* BigInteger<Base>::divide(const BigNumber<Base>& obj) const {
+  if (const BigInteger<Base>* pIntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this / *pIntObj);
+  } else if (const BigUnsigned<Base>* pUntObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this / (BigInteger<Base>)*pUntObj);
+  } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this / (BigInteger<Base>)*pRatObj);
   }
 }
 

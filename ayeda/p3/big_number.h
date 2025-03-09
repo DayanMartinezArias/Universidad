@@ -25,6 +25,8 @@ class BigNumber {
   
   virtual BigNumber<Base>* add(const BigNumber<Base>& obj) const = 0;
   virtual BigNumber<Base>* sub(const BigNumber<Base>& obj) const = 0;
+  virtual BigNumber<Base>* multiplicate(const BigNumber<Base>& obj) const = 0;
+  virtual BigNumber<Base>* divide(const BigNumber<Base>& obj) const = 0;
 
   virtual std::ostream& write(std::ostream& os) const = 0;
   virtual std::istream& read(std::istream& is) = 0;

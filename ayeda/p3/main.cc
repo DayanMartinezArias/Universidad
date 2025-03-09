@@ -13,5 +13,13 @@ int main () {
   bn2->write(std::cout);
   bn3->write(std::cout);
   
-  bn2->sub(*bn3)->write(std::cout);
+  auto op1 = bn3->divide(*bn1);
+  op1->write(std::cout);
+  
+  delete op1;
+  delete bn1;
+  delete bn2;
+  delete bn3;
+
+  return 0;
 }
