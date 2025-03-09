@@ -177,7 +177,13 @@ BigInteger<Base> BigInteger<Base>::operator%(const BigInteger<Base>& obj) const 
 
 template <unsigned char Base>
 BigNumber<Base>* BigInteger<Base>::add(const BigNumber<Base>& obj) const {
-  return new BigInteger<Base>(*this + (BigInteger<Base>)obj);
+  if (const BigInteger<Base>* pIntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + *pIntObj);
+  } else if (const BigUnsigned<Base>* pUntObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + (BigInteger<Base>)*pUntObj);
+  } else if (const BigRational<Base>* pRatObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigInteger<Base>(*this + (BigInteger<Base>)*pRatObj);
+  }
 }
 
 

@@ -15,6 +15,7 @@ template <unsigned char Base>
 class BigRational : public BigNumber<Base> {
  public: 
   BigRational(const BigInteger<Base> numerator, const BigInteger<Base> denominator);
+  BigRational(const BigRational<Base>& obj);
 
   BigInteger<Base> GetNumerator() const {return numerator_;}
   BigInteger<Base> GetDenominator() const {return denominator_;}
@@ -36,7 +37,9 @@ class BigRational : public BigNumber<Base> {
 
 
   operator BigUnsigned<Base>() const override {return BigUnsigned<Base>((numerator_ / denominator_).abs());}
-  operator BigInteger<Base>() const override {return numerator_ / denominator_;}
+  operator BigInteger<Base>() const override {
+    return (numerator_ / denominator_);
+  }
   operator BigRational<Base>() const override {return *this;}
 
   virtual std::ostream& write(std::ostream& os) const override;
@@ -46,6 +49,9 @@ class BigRational : public BigNumber<Base> {
   BigInteger<Base> numerator_;
   BigInteger<Base> denominator_;
 };
+
+template <unsigned char Base>
+BigRational<Base>::BigRational(const BigRational<Base>& obj) : denominator_(obj.denominator_), numerator_(obj.numerator_) {}
 
 template <unsigned char Base>
 BigRational<Base>::BigRational(const BigInteger<Base> numerator, const BigInteger<Base> denominator) : numerator_(numerator), denominator_(denominator) {
@@ -149,7 +155,13 @@ BigRational<Base>& BigRational<Base>::operator=(const BigRational<Base>& other) 
 
 template <unsigned char Base>
 BigNumber<Base>* BigRational<Base>::add(const BigNumber<Base>& obj) const {
-  return new BigRational<Base>(*this + (BigRational<Base>)obj);
+  if (const BigRational<Base>* pIntObj = dynamic_cast<const BigRational<Base>*>(&obj)) {
+    return new BigRational<Base>(*this + *pIntObj);
+  } else if (const BigInteger<Base>* pUntObj = dynamic_cast<const BigInteger<Base>*>(&obj)) {
+    return new BigRational<Base>(*this + (BigRational<Base>)*pUntObj);
+  } else if (const BigUnsigned<Base>* pRatObj = dynamic_cast<const BigUnsigned<Base>*>(&obj)) {
+    return new BigRational<Base>(*this + (BigRational<Base>)*pRatObj);
+  }
 }
 
 

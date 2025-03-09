@@ -81,7 +81,7 @@ BigUnsigned<Base>::BigUnsigned(const char* number) {
   while (*number == '0') {
     number++;
   }
-  while (*number != 'u' && *number != 'i' && *number != '\n') {
+  while (*number != 'u' && *number != 'i' && *number != 'r' && *number != '/' && *number != '\n') {
     digits_.emplace_back(*number);
     number++;
   }
@@ -113,6 +113,8 @@ std::istream& BigUnsigned<Base>::read(std::istream& is) {
 
 template <unsigned char Base>
 bool BigUnsigned<Base>::operator==(const BigUnsigned<Base>& obj) const {
+  write(std::cout);
+  obj.write(std::cout);
   if (digits_.size() != obj.digits_.size()) return false;
   for (size_t i{0}; i < digits_.size(); ++i) {
     if (digits_[i] != obj.digits_[i]) return false;
@@ -269,6 +271,7 @@ BigUnsigned<Base> BigUnsigned<Base>::operator/(const BigUnsigned<Base>& obj) con
 
   BigUnsigned<Base> quotient;
   BigUnsigned<Base> remainder;
+
 
   for (size_t i = 0; i < digits_.size(); ++i) {
     remainder.digits_.push_back(digits_[i]);

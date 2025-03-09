@@ -33,17 +33,21 @@ class BigNumber {
 
     size_t len = std::strlen(string_of_digits);
     char type = string_of_digits[len - 1]; 
+    std::string a(string_of_digits);
     // que pasa si no especifíco base
-    switch (type) {
-      case 'u' :
-        return new BigUnsigned<Base>(string_of_digits);
-      case 'i' :
-         return new BigInteger<Base>(BigUnsigned<Base>(string_of_digits));
-      case 'r' :
-         return new BigRational<Base>(BigInteger<Base>(string_of_digits), BigInteger<Base>(string_of_digits));
-      default:
-        return nullptr;
+    if (type == 'u') return new BigUnsigned<Base>(string_of_digits);
+    else if (type == 'i') return new BigInteger<Base>(BigUnsigned<Base>(string_of_digits));
+    else if (type == 'r') {
+      const char *delimiter = strchr(string_of_digits, '/');
+      if (delimiter) {
+        const char *first = string_of_digits;  // First part
+        const char *second = delimiter + 1;  // Second part
+        BigInteger<Base> n(first);
+        BigInteger<Base> d(second);
+        return new BigRational<Base>(n, d);
+      }
     }
+    else return nullptr;
   }
 };
 
