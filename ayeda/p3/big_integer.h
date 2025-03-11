@@ -46,8 +46,8 @@ class BigInteger : public BigNumber<Base> {
   operator BigInteger<Base>() const override {return *this;};
   operator BigRational<Base>() const override {return BigRational<Base>(*this, BigInteger<Base>("1i"));}
   
-  virtual std::ostream& write(std::ostream& os) const override;
-  virtual std::istream& read(std::istream& is) {};
+  virtual std::ostream& write(std::ostream& os) const;
+  virtual std::istream& read(std::istream& is);
  private:
   BigUnsigned<Base> abs_;
   bool sign_;
@@ -75,6 +75,30 @@ std::ostream& BigInteger<Base>::write(std::ostream& os) const {
   os << "\n";
   return os;
 }
+
+template <unsigned char Base>
+std::istream& BigInteger<Base>::read(std::istream& is) {
+  std::string input;
+  is >> input; // Read the number as a string
+
+  if (input.empty()) {
+    throw std::runtime_error("Invalid input for BigInteger.");
+  }
+
+  // Check for sign
+  if (input[0] == '-') {
+    sign_ = false;
+    input.erase(0, 1); // Remove the '-' sign from the string
+  } else {
+    sign_ = true;
+  }
+
+  // Convert remaining part to BigUnsigned<Base>
+  abs_ = BigUnsigned<Base>(input.c_str());
+
+  return is;
+}
+ 
 
 template <unsigned char Base>
 bool BigInteger<Base>::operator==(const BigInteger<Base>& obj) const {

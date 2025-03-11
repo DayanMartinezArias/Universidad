@@ -44,8 +44,8 @@ class BigUnsigned : public BigNumber<Base> {
   BigNumber<Base>* multiplicate(const BigNumber<Base>& obj) const;
   BigNumber<Base>* divide(const BigNumber<Base>& obj) const;
 
-  std::ostream& write(std::ostream& os) const override;
-  std::istream& read(std::istream&) override;
+  std::ostream& write(std::ostream& os) const;
+  std::istream& read(std::istream&);
 
   static unsigned CharToVal(const char& digit);
   static char ValToChar(const unsigned& value);
@@ -113,6 +113,7 @@ std::istream& BigUnsigned<Base>::read(std::istream& is) {
   // Compribación de valor de base y caracteres válidos
   int inx{0};
   while (inx < line.length() - 2) {
+    if (!isValidDigit(line[inx])) throw BigNumberBadDigit(line);
     digits_[inx] = line[inx];
     ++inx;
   }

@@ -21,5 +21,12 @@ int main () {
   delete bn2;
   delete bn3;
 
+  std::cout << "Nuevas cosas" << std::endl;
+
+  BigRational<10> a(BigInteger<10>("0i"), BigInteger<10>("1i"));
+  a.read(std::cin);
+  a.write(std::cout);
+  
+
   return 0;
 }

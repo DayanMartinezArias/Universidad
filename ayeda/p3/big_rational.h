@@ -44,8 +44,8 @@ class BigRational : public BigNumber<Base> {
   }
   operator BigRational<Base>() const override {return *this;}
 
-  virtual std::ostream& write(std::ostream& os) const override;
-  virtual std::istream& read(std::istream& is) {};
+  virtual std::ostream& write(std::ostream& os) const;
+  virtual std::istream& read(std::istream& is);
 
  private:
   BigInteger<Base> numerator_;
@@ -84,6 +84,49 @@ std::ostream& BigRational<Base>::write(std::ostream& os) const {
   }
   os << "\n";
   return os;
+}
+
+template <unsigned char Base>
+std::istream& BigRational<Base>::read(std::istream& is) {
+    std::string input;
+    is >> input; // Leer toda la entrada en un solo string
+    bool num_s = true;
+    bool den_s = true;
+
+    size_t slash_pos = input.find('/'); // Buscar el caracter '/'
+    if (slash_pos == std::string::npos) {
+        throw std::invalid_argument("Formato incorrecto: falta '/' en la entrada.");
+    }
+
+    std::string num = input.substr(0, slash_pos);         // Parte del numerador
+    std::string den = input.substr(slash_pos + 1);        // Parte del denominador
+    num += 'i';
+
+    if (num[0] == '-') {
+      num_s = false;
+      num.erase(0, 1); // Remove the '-' sign from the string
+    }
+    if (den[0] == '-') {
+      den_s = false;
+      den.erase(0, 1); // Remove the '-' sign from the string
+    }
+
+    if (den.empty()) {
+        throw std::invalid_argument("Formato incorrecto: denominador vacío.");
+    }
+
+    numerator_ = BigInteger<Base>(num.c_str(), num_s);
+    denominator_ = BigInteger<Base>(den.c_str(), den_s);
+
+    if (!(numerator_.GetSign() || denominator_.GetSign())) {
+      -numerator_;
+      -denominator_;
+    } else if (denominator_.GetSign() == false) {
+      -numerator_;
+      -denominator_;   
+    }
+    Minimize(); // Simplificar la fracción automáticamente
+    return is;
 }
 
 template <unsigned char Base>
