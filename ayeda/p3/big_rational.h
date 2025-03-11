@@ -14,7 +14,7 @@ class BigInteger;
 template <unsigned char Base>
 class BigRational : public BigNumber<Base> {
  public: 
-  BigRational(const BigInteger<Base> numerator, const BigInteger<Base> denominator);
+  BigRational(const BigInteger<Base>& numerator, const BigInteger<Base>& denominator);
   BigRational(const BigRational<Base>& obj);
 
   BigInteger<Base> GetNumerator() const {return numerator_;}
@@ -44,7 +44,7 @@ class BigRational : public BigNumber<Base> {
   }
   operator BigRational<Base>() const override {return *this;}
 
-  virtual std::ostream& write(std::ostream& os) const;
+  virtual std::ostream& write(std::ostream& os) const override;
   virtual std::istream& read(std::istream& is);
 
  private:
@@ -58,7 +58,7 @@ BigRational<Base>::BigRational(const BigRational<Base>& obj) : denominator_(obj.
 }
 
 template <unsigned char Base>
-BigRational<Base>::BigRational(const BigInteger<Base> numerator, const BigInteger<Base> denominator) : numerator_(numerator), denominator_(denominator) {
+BigRational<Base>::BigRational(const BigInteger<Base>& numerator, const BigInteger<Base>& denominator) : numerator_(numerator), denominator_(denominator) {
   if (!(numerator.GetSign() || denominator.GetSign())) {
     -numerator_;
     -denominator_;

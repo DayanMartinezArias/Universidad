@@ -110,7 +110,7 @@ std::istream& BigUnsigned<Base>::read(std::istream& is) {
   std::string line;
   is >> line;
   
-  // Compribación de valor de base y caracteres válidos
+  // Comprobación de valor de base y caracteres válidos
   int inx{0};
   while (inx < line.length() - 2) {
     if (!isValidDigit(line[inx])) throw BigNumberBadDigit(line);

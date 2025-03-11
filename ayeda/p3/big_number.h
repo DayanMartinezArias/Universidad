@@ -28,9 +28,6 @@ class BigNumber {
   virtual BigNumber<Base>* multiplicate(const BigNumber<Base>& obj) const = 0;
   virtual BigNumber<Base>* divide(const BigNumber<Base>& obj) const = 0;
 
-  virtual std::ostream& write(std::ostream& os) const = 0;
-  virtual std::istream& read(std::istream& is) = 0;
-
   static BigNumber<Base>* create(const char* string_of_digits) {
     if (!string_of_digits || *string_of_digits == '\0') return nullptr;
 
@@ -64,6 +61,19 @@ class BigNumber {
     }
     else return nullptr;
   }
+
+  friend std::ostream& operator<<(std::ostream& os, BigNumber<Base>& obj) {
+    obj.write(os);
+    return os;
+  }
+  friend std::istream& operator>>(std::istream& is, BigNumber<Base>& obj) {
+    obj.read(is);
+    return is;
+  }
+
+ protected:
+  virtual std::ostream& write(std::ostream& os) const = 0;
+  virtual std::istream& read(std::istream& is) = 0;
 };
 
 #endif

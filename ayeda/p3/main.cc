@@ -8,13 +8,14 @@ int main () {
   const char* ab = "1/1r";
   auto bn1 = BigNumber<10>::create(ab);
   auto bn2 = BigNumber<10>::create("9u");
-  auto bn3 = BigNumber<10>::create("3i");
-  bn1->write(std::cout);
-  bn2->write(std::cout);
-  bn3->write(std::cout);
+  auto bn3 = BigNumber<10>::create("-3i");
+   
+  std::cout << *bn3 << std::endl;
+  std::cin >> *bn3;
+  std::cout << *bn3 << std::endl;
   
   auto op1 = bn3->divide(*bn1);
-  op1->write(std::cout);
+  
   
   delete op1;
   delete bn1;
