@@ -16,33 +16,19 @@ struct Board {
 };
 
 template <unsigned char Base>
-void ProcessFile() {
-  unsigned base;
-  std::string filename("input.txt");
-  std::string out("output.txt");
-  std::ifstream input(filename);
-  std::ofstream output(out);
-
+void ProcessFile(std::ofstream& output, std::ifstream& input, int line_number) {
   Board<Base> board;
 
-  if (!input) {
+  if (!input || !output) {
     std::cerr << "There was an error opening file" << std::endl;
     return;
   }
   std::string line;
-  int line_number{1};
 
   while (std::getline(input, line)) {
     if(line_number == 1) {
-      std::istringstream ss(line);
-      std::string temp;
-      ss >> temp >> temp >> base;
-      if (temp != "=" || base <= 0) {
-        std::cerr << "Error: Invalid format" << std::endl;
-          return;
-        }
-      output << "Base = " << base << std::endl;
       ++line_number;
+      continue;
     }
     else {
       std::istringstream ss(line);
@@ -77,21 +63,61 @@ void ProcessFile() {
               else if (token == "-") pila.push(a->sub(*b));
               else if (token == "*") pila.push(a->multiplicate(*b));
               else if (token == "/") pila.push(a->divide(*b));
+              else {
+                throw std::runtime_error("Invalid Expression");
+              }
             }
           }
-         // if (pila.size() != 1) throw runtime_error("Invalid expresion");
+          if (pila.size() != 1) {
+            throw std::runtime_error("Invalid Expression");
+          }
           board.board[label] = pila.top();
         } catch (BigNumberException e) {
-
+          std::cerr << e.what() << std::endl;
         }
       }
-      output << label << " = " << *board.board[label] << std::endl;
+      if (board.board[label] == nullptr) {
+        std::cerr << "Error: Variable '" << label << "' initialized." << std::endl;
+      } else {
+        output << label << " = " << *board.board[label] << std::endl;
+      }
     }
   }
 }
 
 
 int main (int argc, char* argv[]) {
-  ProcessFile<10>();
+  unsigned base;
+  std::string filename("input.txt");
+  std::string out("output.txt");
+  std::ifstream input(filename);
+  std::ofstream output(out);
+  int line_number{1};
+  std::string line;
+
+   while (std::getline(input, line)) {
+    if(line_number == 1) {
+      std::istringstream ss(line);
+      std::string temp;
+      ss >> temp >> temp >> base;
+      if (temp != "=" || base <= 0) {
+        std::cerr << "Error: Invalid format" << std::endl;
+          return 1;
+        }
+      output << "Base = " << base << std::endl;
+      ++line_number;
+    }
+  }
+  input.clear();
+  input.seekg(0, std::ios::beg);
+  if (base == 10) {
+    ProcessFile<10>(output, input, line_number);
+  } else if (base == 2) {
+     ProcessFile<2>(output, input, line_number);
+  } else if (base == 8) {
+     ProcessFile<8>(output, input, line_number);
+  } else if (base == 16) {
+     ProcessFile<16>(output, input, line_number);
+  }
   return 0;
 }
