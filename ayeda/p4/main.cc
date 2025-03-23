@@ -1,27 +1,32 @@
 #include <iostream>
 #include <vector>
 #include "dispersion_function.h"  // Asume que el código de las funciones de dispersión está en este archivo
+#include "exploration_function.h"
+#include "secuence.h"
+#include "hash_table.h"
 
 int main() {
-    // Tamaño de la tabla hash
+    // Tamaño de la tabla
     unsigned tableSize = 10;
 
-    // Crear instancias de las funciones de dispersión
-    ModuloDispersion<int> moduloFunc(tableSize);
-    SumaDispersion<std::vector<int>> sumaFunc(tableSize);
-    PseudoRandomDispersion<int> pseudoRandomFunc(tableSize);
+    // Función de dispersión (módulo)
+    ModuloDispersion<int> hashFunction(tableSize);
 
-    // Probar ModuloDispersion con una clave entera
-    int key1 = 123;
-    std::cout << "Modulo Dispersion para clave " << key1 << ": " << moduloFunc(key1) << std::endl;
+    // Crear la tabla hash con dispersión abierta
+    HashTable<int, dynamicSequence<int>> hashTable(tableSize, hashFunction);
 
-    // Probar SumaDispersion con una clave de tipo vector<int>
-    std::vector<int> key2 = {1, 2, 3};  // Clave como vector de enteros
-    std::cout << "Suma Dispersion para clave {1, 2, 3}: " << sumaFunc(key2) << std::endl;
+    // Insertar algunas claves
+    hashTable.insert(123);
+    hashTable.insert(456);
+    hashTable.insert(789);
 
-    // Probar PseudoRandomDispersion con una clave entera
-    int key3 = 406;
-    std::cout << "PseudoRandom Dispersion para clave " << key3 << ": " << pseudoRandomFunc(key3) << std::endl;
+    // Buscar una clave
+    bool found = hashTable.search(456);
+    if (found) {
+        std::cout << "Clave 123 encontrada." << std::endl;
+    } else {
+        std::cout << "Clave 123 no encontrada." << std::endl;
+    }
 
     return 0;
 }
