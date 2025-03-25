@@ -6,13 +6,6 @@
 
 template <class Key, class Container = staticSequence<Key>>
 class HashTable {
- private:
-  unsigned tableSize;                     // Tamaño de la tabla
-  unsigned blockSize;                     // Tamaño del bloque (solo para dispersión cerrada)
-  DispersionFunction<Key>& hashFunction;  // Función de dispersión
-  ExplorationFunction<Key>& explorationFunction;  // Función de exploración (solo para dispersión cerrada)
-  std::vector<Container> table;           // Tabla de dispersión (vector de contenedores)
-
  public:
   // Constructor
   HashTable(unsigned size, DispersionFunction<Key>& hf, ExplorationFunction<Key>& ef, unsigned bs)
@@ -51,15 +44,16 @@ class HashTable {
     }
     return false;  // Clave no encontrada
   }
+ private:
+  unsigned tableSize;                     // Tamaño de la tabla
+  unsigned blockSize;                     // Tamaño del bloque (solo para dispersión cerrada)
+  DispersionFunction<Key>& hashFunction;  // Función de dispersión
+  ExplorationFunction<Key>& explorationFunction;  // Función de exploración (solo para dispersión cerrada)
+  std::vector<Container> table;           // Tabla de dispersión (vector de contenedores)
 };
 
 template <class Key>
 class HashTable<Key, dynamicSequence<Key>> {
-private:
- unsigned tableSize;                     // Tamaño de la tabla
-  DispersionFunction<Key>& hashFunction;  // Función de dispersión
-  std::vector<dynamicSequence<Key>> table;  // Tabla de dispersión (vector de secuencias dinámicas)
-
  public:
   // Constructor para dispersión abierta
   HashTable(unsigned size, DispersionFunction<Key>& hf)
@@ -78,4 +72,8 @@ private:
    unsigned index = hashFunction(k) % tableSize;  // Calcula la posición inicial
     return table[index].search(k);  // Busca en la secuencia dinámica
   }
+ private:
+  unsigned tableSize;                     // Tamaño de la tabla
+   DispersionFunction<Key>& hashFunction;  // Función de dispersión
+   std::vector<dynamicSequence<Key>> table;  // Tabla de dispersión (vector de secuencias dinámicas
 };
