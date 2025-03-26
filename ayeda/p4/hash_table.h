@@ -13,36 +13,34 @@ class HashTable {
     table.resize(tableSize);  // Inicializa la tabla con el tamaño especificado
   }
 
-  // Método para insertar una clave
   bool insert(const Key& k) {
-    unsigned index = hashFunction(k) % tableSize;  // Calcula la posición inicial
-    unsigned attempt = 0;  // Número de intentos de exploración
-
+    unsigned index = hashFunction(k) % tableSize;  
+    unsigned attempt = 0; 
     while (attempt < tableSize) {
-      if (table[index].insert(k)) {  // Intenta insertar en el contenedor
-        return true;  // Inserción exitosa
+
+      if (table[index].insert(k)) { 
+        return true; 
       }
-      // Si no se pudo insertar, aplica la función de exploración
+ 
       index = (index + explorationFunction(k, attempt)) % tableSize;
       attempt++;
     }
-    return false;  // Tabla llena o no se pudo insertar
+    return false;  
   }
 
-  // Método para buscar una clave
+ 
   bool search(const Key& k) const {
-    unsigned index = hashFunction(k) % tableSize;  // Calcula la posición inicial
-    unsigned attempt = 0;  // Número de intentos de exploración
+    unsigned index = hashFunction(k) % tableSize;  
+    unsigned attempt = 0;
 
     while (attempt < tableSize) {
-      if (table[index].search(k)) {  // Busca en el contenedor
-        return true;  // Clave encontrada
+      if (table[index].search(k)) {  
+        return true; 
       }
-      // Si no se encontró, aplica la función de exploración
       index = (index + explorationFunction(k, attempt)) % tableSize;
       attempt++;
     }
-    return false;  // Clave no encontrada
+    return false;  a
   }
  private:
   unsigned tableSize;                     // Tamaño de la tabla

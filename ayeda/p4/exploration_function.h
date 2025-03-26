@@ -12,7 +12,7 @@ template <class Key>
 class LinearExploration : public ExplorationFunction<Key> {
 public:
  unsigned operator()(const Key& k, unsigned i) const override {
-   return i;  // Desplazamiento lineal
+   return i; 
  }
 };
 
@@ -20,7 +20,7 @@ template <class Key>
 class QuadraticExploration : public ExplorationFunction<Key> {
  public:
   unsigned operator()(const Key& k, unsigned i) const override {
-    return i * i;  // Desplazamiento cuadrático
+    return i * i;  
   }
 };
 

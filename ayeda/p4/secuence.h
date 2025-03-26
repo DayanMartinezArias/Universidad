@@ -29,8 +29,8 @@ class dynamicSequence: public Sequence<Key> {
 template<class Key> 
 class staticSequence: public Sequence<Key> {
  public:
-  staticSequence(unsigned size) : sz_(size) {
-    data_.resize(sz_);
+  staticSequence(unsigned size = 10) : sz_(size) {
+    data_.resize(sz_, nif("default"));
   }
   bool search(const Key& k) const override {
     for (const auto& item : data_) {
@@ -39,9 +39,9 @@ class staticSequence: public Sequence<Key> {
    return false;
   }
 
-  bool insert(const Key& k) const override {
+  bool insert(const Key& k) override {
    for (auto& item : data_) {
-     if (item == Key()) {
+     if (item == nif("default")) {
       item = k;
       return true;
      }

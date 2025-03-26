@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include "nif.h"
 
 template <class Key>
 class DispersionFunction {
@@ -42,4 +43,21 @@ class PseudoRandomDispersion : public DispersionFunction<Key> {
   }
  private:
   unsigned tableSize;
+};
+
+template <>
+class SumaDispersion<nif> : public DispersionFunction<nif> {
+public:
+  SumaDispersion(unsigned size) : tableSize(size) {}
+  unsigned operator()(const nif& k) const override {
+    long num = static_cast<long>(k);  
+    unsigned sum{0};
+     while (num > 0) {
+       sum += num % 10;  
+       num /= 10;
+     }
+    return sum % tableSize;
+  }
+private:
+    unsigned tableSize;
 };
