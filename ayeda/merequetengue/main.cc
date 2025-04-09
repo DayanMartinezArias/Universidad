@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
   BigRational<10> dec, dec1;
   BigRational<8> oct, oct1;
   BigRational<16> hex, hex1;
+  BigRational<2> bin, bin1;
   
   int base;
   std::string line;
@@ -63,5 +64,15 @@ int main(int argc, char* argv[]) {
     std::cout << "n1 / n2 = " << (hex / hex1) << "\n";
     std::cout << "n1 == n2 : " << (hex == hex1? "true" : "false") << "\n";
     std::cout << "n1 < n2 : " << (hex < hex1? "true" : "false") << "\n";
+  } else if (base == 2) {
+    num1Stream >> bin;
+    num2Stream >> bin1;
+
+    std::cout << "n1 + n2 = " << (bin + bin1) << "\n";
+    std::cout << "n1 - n2 = " << (bin - bin1) << "\n";
+    std::cout << "n1 * n2 = " << (bin * bin1) << "\n";
+    std::cout << "n1 / n2 = " << (bin / bin1) << "\n";
+    std::cout << "n1 == n2 : " << (bin == bin1? "true" : "false") << "\n";
+    std::cout << "n1 < n2 : " << (bin < bin1? "true" : "false") << "\n";
   }
 }

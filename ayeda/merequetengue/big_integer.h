@@ -207,8 +207,9 @@ template<>
 class BigInteger<2> {
  public:
   BigInteger(const BigUnsigned<2>& value);
+  BigInteger(int) : binary_digits(0) {};
   BigInteger() : binary_digits(0) {};
-  
+  BigUnsigned<2> GetUnsigned() const;
   BigInteger<2> twos_complement() const;
   bool operator==(const BigInteger<2>& obj) const;
   BigInteger<2> operator-(const BigInteger<2>& obj) const;
@@ -238,12 +239,27 @@ class BigInteger<2> {
   std::vector<bool> binary_digits;
 };
 
+
+BigUnsigned<2> BigInteger<2>::GetUnsigned() const {
+  BigInteger<2> a = *this - BigInteger<2>("1");
+  BigInteger<2> b;
+  for (const bool d : a.binary_digits) {
+    b.binary_digits.emplace_back(!d);
+  }
+}
+
 BigInteger<2>::BigInteger(const BigUnsigned<2>& value) {
+  bool neg = false;
   std::ostringstream oss;
   oss << value;
   std::string value_str = oss.str();
-  for (const char& digit : value_str) {
-    binary_digits.emplace_back(digit == '1');
+  if (value_str[0] == '-') neg = true;
+  for (int i{0}; i < value_str.length(); ++i) {
+    if (i == 0 && neg == true) continue;
+    binary_digits.emplace_back(value_str[i] == '1');
+  }
+  if (neg == true) {
+    twos_complement();
   }
 }
 
@@ -296,29 +312,18 @@ BigInteger<2> BigInteger<2>::operator+(const BigInteger<2>& obj) const {
 }
 
 BigInteger<2> BigInteger<2>::operator-(const BigInteger<2>& obj) const {
-    return *this + obj.twos_complement();
+  return *this + obj.twos_complement();
 }
 
 BigInteger<2> BigInteger<2>::operator*(const BigInteger<2>& obj) const {
-    BigInteger<2> result; 
-    BigInteger<2> multiplicand = *this; 
-    BigInteger<2> multiplier = obj;
+  BigUnsigned<2> a;
+  BigUnsigned<2> b;
 
-    result.binary_digits.resize(multiplicand.binary_digits.size() + multiplier.binary_digits.size(), false);
+  return (a * b)
+}
 
-    for (int i = 0; i < multiplier.binary_digits.size(); ++i) {
-      if (multiplier.binary_digits[i]) { 
-      for (int j = 0; j < multiplicand.binary_digits.size(); ++j) {
-        if (multiplicand.binary_digits[j]) {
-          result.binary_digits[i + j] = result.binary_digits[i + j] ^ true;
-        }
-      }
-    }
-  }
-  if (std::all_of(result.binary_digits.begin(), result.binary_digits.end(), [](bool bit) { return !bit; })) {
-    result.binary_digits.push_back(false);
-  }
-  return result;
+BigInteger<2> BigInteger<2>::operator/(const BigInteger<2>& obj) const {
+  
 }
 
 #endif
