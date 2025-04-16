@@ -22,7 +22,7 @@ class Parser {
   bool Check(const Type& type);
   void Expected(const Type& type, const std::string& message);
   token Previous();
-  // private member
+
   std::vector<token> tokens;
   size_t position = 0;
 };

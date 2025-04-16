@@ -11,20 +11,19 @@ STMT -> PRINT EXPR END | ID ASSIGN EXPR END
 EXPR -> NUMBER OP NUMBER | STRING "+" STRING | STRING
 */
 
-// Clase Base del Árbol de análisis sintáctico
 class ASTNode {
  public:
   virtual ~ASTNode() = default;
   virtual void run(Context& context) = 0;
 };
 
-// Clase para las declaraciones, tipo: screen 5 + 9; 
+
 class Statements : public ASTNode{};
 
 // Las expresiones son las diferentes partes que componen una declaración
 class Expressions : public ASTNode {
   public:
-   virtual Var get_value() = 0; // Cada expresión se subdivide en diferente partes con valores cada una
+   virtual Var get_value() = 0;
 };
 
 class Print : public Statements {
