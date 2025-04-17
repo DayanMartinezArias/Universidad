@@ -1,35 +1,29 @@
-#include "node.h"
-#include "bt.h"
-#include <memory>
+#include "bst.h"
 #include <iostream>
 
 int main() {
-  // Build the tree in one go using nested constructors
-  std::unique_ptr<Node<int>> root = std::make_unique<Node<int>>(
-    7,  // root data
-    // Left subtree (8)
-    std::make_unique<Node<int>>(8),
-    // Right subtree (9 -> 10 -> 9)
-    std::make_unique<Node<int>>(
-      9,
-      // Left child of 9 (10 -> 9)
-      std::make_unique<Node<int>>(
-        10,
-        nullptr,  // No left child for 10
-        std::make_unique<Node<int>>(9)  // Right child of 10 (9)
-      ),
-      nullptr  // No right child for 9
-    )
-  );
+    try {
+        // Create BST with root node 50
+        BST<int> bst(std::make_unique<Node<int>>(50));
 
-  std::cout << "Tree constructed successfully!" << std::endl;
-  std::cout << *root << std::endl;
+        // Insert values
+        std::cout << "Insert 30: " << (bst.Insert(30) ? "Success" : "Failed") << std::endl;
+        std::cout << "Insert 70: " << (bst.Insert(70) ? "Success" : "Failed") << std::endl;
+        std::cout << "Insert 20: " << (bst.Insert(20) ? "Success" : "Failed") << std::endl;
+        std::cout << "Insert 40: " << (bst.Insert(40) ? "Success" : "Failed") << std::endl;
 
-  ConcreteBT<int> tree(std::move(root));
+        // Search for values
+        std::cout << "\nSearch results:" << std::endl;
+        std::cout << "Search 30: " << (bst.Search(30) ? "Found" : "Not found") << std::endl;
+        std::cout << "Search 25: " << (bst.Search(25) ? "Found" : "Not found") << std::endl;
+        std::cout << "Search 70: " << (bst.Search(70) ? "Found" : "Not found") << std::endl;
 
-  std::cout << "In-order traversal: ";
-  tree.InOrder();
-  std::cout << "\nLevel-order traversal:\n" << tree << std::endl;
+        bst.InOrder();
+        std::cout << bst << std::endl;
 
-  return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
+    return 0;
 }

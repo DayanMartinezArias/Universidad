@@ -9,8 +9,8 @@ class BT {
   BT(std::unique_ptr<Node<Key>>&& root) : root_(std::move(root)) {}
 
   virtual bool Insert(const Key& val) = 0;
-  virtual bool search(const Key& val) const = 0;
-  virtual void InOrder() const;
+  virtual bool Search(const Key& val) const = 0;
+  void InOrder() const;
 
 friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
   if (!tree.root_) return os;
@@ -36,7 +36,6 @@ friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
 
     os << *current << " ";
 
-    // Push children with incremented level
     q.push({current->GetLeftNode(), level + 1});
     q.push({current->GetRightNode(), level + 1});
   }
@@ -47,8 +46,6 @@ friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
 
  protected:
   void InOrderHelper(const Node<Key>* node) const;
-
- private:
   std::unique_ptr<Node<Key>> root_;
 };
 
