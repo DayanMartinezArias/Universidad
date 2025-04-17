@@ -13,42 +13,36 @@ class BT {
   virtual void InOrder() const;
 
 friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
-  if (!tree.root_) return os;  // Handle empty tree
+  if (!tree.root_) return os;
 
-  std::queue<Node<Key>*> q;
-  q.push(tree.root_.get());
+  std::queue<std::pair<Node<Key>*, int>> q;
+  q.push({tree.root_.get(), tree.root_->GetLevel()});
   int current_level = tree.root_->GetLevel();
   os << "Level: " << current_level << "\n";
-    
+
   while (!q.empty()) {
-    if (q.front() == nullptr) {
-      os << "[.]";
-      q.pop();
-      continue;
-    }
-    Node<Key>* current = q.front();
+    auto [current, level] = q.front();
     q.pop();
-        
-    // Print level header if we've moved to a new level
-    if (current->GetLevel() != current_level) {
-      current_level = current->GetLevel();
+
+    if (level != current_level) {
+      current_level = level;
       os << "\nLevel: " << current_level << "\n";
     }
-        
-    os << *current << " ";  // Print the node     
-    // Push children
-    if (current->GetLeftNode()) {
-      q.push(current->GetLeftNode());
-    } else {
-      q.push(nullptr);
+
+    if (current == nullptr) {
+      os << "[.] ";
+      continue;
     }
-    if (current->GetRightNode()) {
-      q.push(current->GetRightNode());
-    } else {
-      q.push(nullptr);
-    }
-    }
-    return os;
+
+    os << *current << " ";
+
+    // Push children with incremented level
+    q.push({current->GetLeftNode(), level + 1});
+    q.push({current->GetRightNode(), level + 1});
+  }
+
+  return os;
+
 }
 
  protected:
