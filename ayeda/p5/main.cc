@@ -1,4 +1,6 @@
 #include "bst.h"
+#include "node_avl.h"
+#include "avl_tree.h"
 #include <iostream>
 
 int main() {
@@ -20,6 +22,9 @@ int main() {
 
         bst.InOrder();
         std::cout << bst << std::endl;
+        std::cout << bst.GetSubTreeHeight(50) << std::endl;
+        AVL<int> a;
+        a.Insert(20);
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

@@ -11,7 +11,8 @@ class Node {
   Node();
   Node(const Key& data, const int& level = 0);
   Node(const Key& data, std::unique_ptr<Node<Key>>&& left, std::unique_ptr<Node<Key>>&& right, const int& level = 0);
-    
+  virtual ~Node() = default;
+
   // Getters 
   Key GetData() const;
   Node<Key>* GetLeftNode() const;

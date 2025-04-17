@@ -5,9 +5,13 @@
 template <class Key>
 class BST : public BT<Key> {
  public:
+  BST() : BT<Key>() {};
   BST(std::unique_ptr<Node<Key>>&& root);
   bool Insert(const Key& val) override;
   bool Search(const Key& val) const override;
+  int GetSubTreeHeight(const Key& val) const;
+ protected:
+  int HeightHelper(const Node<Key>* node) const;
 };
 
 /**
@@ -87,4 +91,52 @@ bool BST<Key>::Search(const Key& val) const {
   return false;
 }
 
+/**
+ * @brief Returns the height of a subtree
+ * 
+ * @tparam Key 
+ * @param val 
+ * @return int 
+ */
+template <class Key>
+int BST<Key>::GetSubTreeHeight(const Key& val) const {
+  Node<Key>* current = this->root_.get();
+  while (current != nullptr) {
+    if (val < current->GetData()) {
+      current = current->GetLeftNode();
+    } else if (val > current->GetData()) {
+      current = current->GetRightNode();
+    } else if (val == current->GetData()) {
+     return HeightHelper(current);
+    } 
+  }
+  return -1;
+}
 
+/**
+ * @brief Helper function for GetSubTreeHeight() that calculates the longest path from the root to a leaf in the tree
+ * 
+ * @tparam Key 
+ * @param node 
+ * @return int 
+ */
+template <class Key>
+int BST<Key>::HeightHelper(const Node<Key>* node) const {
+  int height{0};
+  std::queue<const Node<Key>*> q;
+  Node<Key>* root = this->root_.get();
+  q.push(root);
+  while(!q.empty()) {
+    const Node<Key>* current = q.front();
+    q.pop();
+    if (current->GetLeftNode() != nullptr) {
+      q.push(current->GetLeftNode());
+      height = current->GetLeftNode()->GetLevel();
+    }
+    if (current->GetRightNode() != nullptr) {
+      q.push(current->GetRightNode());
+      height = current->GetRightNode()->GetLevel();
+    }
+  }
+  return height;
+}

@@ -70,12 +70,10 @@ class ConcreteBT : public BT<Key> {
   using BT<Key>::BT;
 
   bool Insert(const Key& val) override {
-    // Implementación ficticia
     return true;
   }
 
   bool search(const Key& val) const override {
-    // Implementación ficticia
     return false;
   }
 };
