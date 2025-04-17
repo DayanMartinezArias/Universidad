@@ -23,19 +23,27 @@ class Node {
   Node<Key>* GetLeftNode() const {return left_.get();} // Returns a pointer to the left node
   Node<Key>* GetRightNode() const {return right_.get();} // Returns a pointer to the right node
   
-  void SetLeftNode(std::unique_ptr<Node<Key>>&& left) { // Sets a pointer to the left child node
-    left_ = std::move(left);
-    if (left_) left_->SetLevel(level_ + 1);
-  } 
-  void SetRightNode(std::unique_ptr<Node<Key>>&& right) { // Sets a pointer to the right child node
-    right_ = std::move(right);
-    if (right_) right_->SetLevel(level_ + 1);
-  } 
+void SetLeftNode(std::unique_ptr<Node<Key>>&& left) {
+  left_ = std::move(left);
+  if (left_) {
+    left_->SetLevel(level_ + 1);
+    UpdateChildLevels(left_.get());
+  }
+} 
+
+void SetRightNode(std::unique_ptr<Node<Key>>&& right) {
+  right_ = std::move(right);
+  if (right_) {
+    right_->SetLevel(level_ + 1);
+    UpdateChildLevels(right_.get());
+  }
+} 
 
   void SetLevel(const int& level) {level_ = level;}
+
   int GetLevel() const {return level_;} // A getter to acces the level
   bool Empty() const {
-    return data_.has_value();
+    return !data_.has_value(); 
   }
   
   friend std::ostream& operator<<(std::ostream& os, const Node<Key>& node) {
@@ -48,6 +56,17 @@ class Node {
   }
   
  protected:
+  void UpdateChildLevels(Node<Key>* node) {
+    if (node == nullptr) return;
+    if (node->left_) {
+      node->left_->SetLevel(node->level_ + 1);
+      UpdateChildLevels(node->left_.get());
+    }
+    if (node->right_) {
+      node->right_->SetLevel(node->level_ + 1);
+      UpdateChildLevels(node->right_.get());
+    }
+}
   int level_{0};
   std::optional<Key> data_;
   std::unique_ptr<Node<Key>> left_;

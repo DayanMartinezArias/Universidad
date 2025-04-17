@@ -8,9 +8,16 @@ int main () {
   std::unique_ptr<Node<int>> n2 = std::make_unique<Node<int>>(8);
   std::unique_ptr<Node<int>> n3 = std::make_unique<Node<int>>(9);
 
+  std::unique_ptr<Node<int>> n4 = std::make_unique<Node<int>>(10);
+  std::unique_ptr<Node<int>> n5 = std::make_unique<Node<int>>(9);
+  
+  n4->SetRightNode(std::move(n5));
+  n3->SetLeftNode(std::move(n4));
   n1->SetLeftNode(std::move(n2));
   n1->SetRightNode(std::move(n3));
 
+
+  std::cout << "hola" << std::endl;
   std::cout << *n1 << std::endl;
 
   ConcreteBT<int> tree(std::move(n1));

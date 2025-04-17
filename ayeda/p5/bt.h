@@ -12,26 +12,44 @@ class BT {
   virtual bool search(const Key& val) const = 0;
   virtual void InOrder() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
-    std::queue<Node<Key>*> q;
-    q.push(tree.root_.get());
-    int level{q.front()->GetLevel()};
-    while (!q.empty()) {
-      if (q.front()->GetLevel() == level) {
-        os << *q.front();
-      } else {
-        level = q.front()->GetLevel();
-        os << "Level: " << level << "\n";
-        os << *q.front();
-      }
-      if (!q.front()->Empty()) {
-        q.push(q.front()->GetLeftNode());
-        q.push(q.front()->GetRightNode());
-      }
+friend std::ostream& operator<<(std::ostream& os, const BT<Key>& tree) {
+  if (!tree.root_) return os;  // Handle empty tree
+
+  std::queue<Node<Key>*> q;
+  q.push(tree.root_.get());
+  int current_level = tree.root_->GetLevel();
+  os << "Level: " << current_level << "\n";
+    
+  while (!q.empty()) {
+    if (q.front() == nullptr) {
+      os << "[.]";
       q.pop();
+      continue;
+    }
+    Node<Key>* current = q.front();
+    q.pop();
+        
+    // Print level header if we've moved to a new level
+    if (current->GetLevel() != current_level) {
+      current_level = current->GetLevel();
+      os << "\nLevel: " << current_level << "\n";
+    }
+        
+    os << *current << " ";  // Print the node     
+    // Push children
+    if (current->GetLeftNode()) {
+      q.push(current->GetLeftNode());
+    } else {
+      q.push(nullptr);
+    }
+    if (current->GetRightNode()) {
+      q.push(current->GetRightNode());
+    } else {
+      q.push(nullptr);
+    }
     }
     return os;
-  }
+}
 
  protected:
   void InOrderHelper(const Node<Key>* node) const;
