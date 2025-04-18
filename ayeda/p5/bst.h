@@ -122,21 +122,8 @@ int BST<Key>::GetSubTreeHeight(const Key& val) const {
  */
 template <class Key>
 int BST<Key>::HeightHelper(const Node<Key>* node) const {
-  int height{0};
-  std::queue<const Node<Key>*> q;
-  Node<Key>* root = this->root_.get();
-  q.push(root);
-  while(!q.empty()) {
-    const Node<Key>* current = q.front();
-    q.pop();
-    if (current->GetLeftNode() != nullptr) {
-      q.push(current->GetLeftNode());
-      height = current->GetLeftNode()->GetLevel();
-    }
-    if (current->GetRightNode() != nullptr) {
-      q.push(current->GetRightNode());
-      height = current->GetRightNode()->GetLevel();
-    }
-  }
-  return height;
+  if (node == nullptr) return 0;
+  int left_height = HeightHelper(node->GetLeftNode());
+  int right_height = HeightHelper(node->GetRightNode());
+  return std::max(left_height, right_height) + 1;
 }

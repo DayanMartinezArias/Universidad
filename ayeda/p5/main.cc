@@ -4,31 +4,22 @@
 #include <iostream>
 
 int main() {
-    try {
-        // Create BST with root node 50
-        BST<int> bst(std::make_unique<Node<int>>(50));
+  AVL<int> tree;
 
-        // Insert values
-        std::cout << "Insert 30: " << (bst.Insert(30) ? "Success" : "Failed") << std::endl;
-        std::cout << "Insert 70: " << (bst.Insert(70) ? "Success" : "Failed") << std::endl;
-        std::cout << "Insert 20: " << (bst.Insert(20) ? "Success" : "Failed") << std::endl;
-        std::cout << "Insert 40: " << (bst.Insert(40) ? "Success" : "Failed") << std::endl;
+  // Insertar elementos
+  std::cout << "Insertando: 30, 10, 20, 40, 50\n";
+  tree.Insert(30);
+  tree.Insert(10);
+  tree.Insert(20);
+  tree.Insert(40);
+  tree.Insert(50);
 
-        // Search for values
-        std::cout << "\nSearch results:" << std::endl;
-        std::cout << "Search 30: " << (bst.Search(30) ? "Found" : "Not found") << std::endl;
-        std::cout << "Search 25: " << (bst.Search(25) ? "Found" : "Not found") << std::endl;
-        std::cout << "Search 70: " << (bst.Search(70) ? "Found" : "Not found") << std::endl;
+  // Buscar elementos
+  std::cout << "Buscando 20: " << (tree.Search(20) ? "Encontrado" : "No encontrado") << "\n";
+  std::cout << "Buscando 99: " << (tree.Search(99) ? "Encontrado" : "No encontrado") << "\n";
 
-        bst.InOrder();
-        std::cout << bst << std::endl;
-        std::cout << bst.GetSubTreeHeight(50) << std::endl;
-        AVL<int> a;
-        a.Insert(20);
+  // Mostrar en preorden
+  std::cout << "Preorden del árbol:\n";
 
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
-
-    return 0;
+  return 0;
 }
