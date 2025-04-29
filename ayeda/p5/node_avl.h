@@ -6,7 +6,7 @@ class NodeAVL : public Node<Key> {
  public:
   NodeAVL();
   NodeAVL(const Key& data, const int& level = 0);
-  int GetBalanceFactor() const {return balance_factor;}
+  int GetbalanceFactor() const {return balance_factor;}
   void SetbalanceFactor(const int& new_balance_factor) {balance_factor = new_balance_factor;}
  private:
   int balance_factor;
